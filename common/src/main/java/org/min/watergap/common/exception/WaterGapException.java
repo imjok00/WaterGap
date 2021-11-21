@@ -5,7 +5,7 @@ package org.min.watergap.common.exception;
  *
  * @Create by metaX.h on 2021/11/7 10:45
  */
-public class WaterGapException extends Exception {
+public class WaterGapException extends RuntimeException {
 
     public WaterGapException(String errorCode, String errorMsg) {
         super(errorCode + ":" + errorMsg);

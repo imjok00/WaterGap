@@ -10,4 +10,6 @@ public abstract class DBDialect {
     public abstract String SHOW_TABLES();
 
     public abstract String SHOW_DATABASES();
+
+    public abstract String SHOW_CREATE_TABLE(String tableName);
 }

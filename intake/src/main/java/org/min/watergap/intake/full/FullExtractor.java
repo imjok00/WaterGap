@@ -6,10 +6,7 @@ import org.min.watergap.intake.dialect.DBDialect;
 import org.min.watergap.intake.full.rdbms.rs.ResultSetCallback;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
  * 全量导出方法
@@ -59,5 +56,29 @@ public abstract class FullExtractor implements Extractor {
         if (resultSet != null) {
             resultSet.close();
         }
+    }
+
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public BaseConfig getBaseConfig() {
+        return baseConfig;
+    }
+
+    public void setBaseConfig(BaseConfig baseConfig) {
+        this.baseConfig = baseConfig;
+    }
+
+    public DBDialect getDbDialect() {
+        return dbDialect;
+    }
+
+    public void setDbDialect(DBDialect dbDialect) {
+        this.dbDialect = dbDialect;
     }
 }

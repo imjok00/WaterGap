@@ -7,10 +7,18 @@ package org.min.watergap.intake.dialect;
  */
 public class MysqlDialect extends DBDialect {
 
-    public static final String GET_ALL_SCHEMA = "SHOW DATABASES;";
+    @Override
+    public String SHOW_DATABASES() {
+        return "SHOW DATABASES;";
+    }
 
     @Override
     public String SHOW_TABLES() {
-        return "";
+        return "SHOW TABLES;";
+    }
+
+    @Override
+    public String SHOW_CREATE_TABLE(String tableName) {
+        return "SHOW CREATE TABLE " + tableName;
     }
 }

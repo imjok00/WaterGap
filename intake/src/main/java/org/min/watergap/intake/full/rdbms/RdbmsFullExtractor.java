@@ -2,10 +2,14 @@ package org.min.watergap.intake.full.rdbms;
 
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.intake.full.FullExtractor;
+import org.min.watergap.intake.full.rdbms.rs.NormalResultSetCallback;
+import org.min.watergap.intake.full.rdbms.rs.ResultSetCallback;
+import org.min.watergap.intake.full.rdbms.to.ColumnStruct;
+import org.min.watergap.intake.full.rdbms.to.TableStruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +19,9 @@ import java.util.List;
  * @Create by metaX.h on 2021/11/10 23:16
  */
 public abstract class RdbmsFullExtractor extends FullExtractor {
-    private static final Logger log = LoggerFactory.getLogger(RdbmsFullExtractor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RdbmsFullExtractor.class);
 
-    protected abstract void extractTableSchema();
+    protected abstract void extractTableSchema() throws WaterGapException;
 
     protected abstract void extractTableDatas();
 
@@ -45,14 +49,20 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
                     try {
                         result.addAll(showAllTables(scopePair.getSchemaName()));
                     } catch (SQLException e) {
-                        log.error("can not get table from schema {}", scopePair.getSchemaName(), e);
+                        LOG.error("can not get table from schema {}", scopePair.getSchemaName(), e);
+                        throw new WaterGapException("get source tables error", e);
                     }
                 });
                 break;
             default:
-                log.warn("scope config is error");
+                LOG.warn("scope config is error");
                 break;
         }
+
+        result.forEach(tableStruct -> {
+
+        });
+
         return result;
     }
 
@@ -72,47 +82,32 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
         return tableStructs;
     }
 
-    class TableStruct {
-        private String schema;
-        private String table;
-        private String createSql;
-        private List<String> primaryKeys;
+    private TableStruct showTableMeta(TableStruct tableStruct) throws SQLException {
+        executeQuery(tableStruct.getSchema(), dbDialect.SHOW_CREATE_TABLE(tableStruct.getTable()), new ResultSetCallback() {
+            @Override
+            public void callBack(ResultSet resultSet) throws SQLException {
+                //tableStruct.setCreateSql(resultSet.getString(2));
+            }
+        });
+        return tableStruct;
 
-        public TableStruct(String schema, String table) {
-            this.schema = schema;
-            this.table = table;
-        }
+    }
 
-        public String getSchema() {
-            return schema;
-        }
-
-        public void setSchema(String schema) {
-            this.schema = schema;
-        }
-
-        public String getTable() {
-            return table;
-        }
-
-        public void setTable(String table) {
-            this.table = table;
-        }
-
-        public String getCreateSql() {
-            return createSql;
-        }
-
-        public void setCreateSql(String createSql) {
-            this.createSql = createSql;
-        }
-
-        public List<String> getPrimaryKeys() {
-            return primaryKeys;
-        }
-
-        public void setPrimaryKeys(List<String> primaryKeys) {
-            this.primaryKeys = primaryKeys;
+    public List<ColumnStruct> showTableMetaData(String catalog, String schema, String table) throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            DatabaseMetaData metaData = connection.getMetaData();
+            resultSet = metaData.getColumns(catalog, schema, table, null);
+            NormalResultSetCallback normalResultSetCallback = new NormalResultSetCallback();
+            normalResultSetCallback.callBack(resultSet);
+            return normalResultSetCallback.getBaseStructs();
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            releaseConnect(connection, statement, resultSet);
         }
     }
 }
