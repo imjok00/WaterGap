@@ -21,6 +21,8 @@ public abstract class DataSourceConfig {
 
     public abstract String getJdbcUrl();
 
+    public abstract String getDriverClass();
+
     public String getIp() {
         return ip;
     }

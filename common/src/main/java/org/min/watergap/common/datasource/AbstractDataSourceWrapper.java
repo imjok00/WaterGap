@@ -27,6 +27,7 @@ public abstract class AbstractDataSourceWrapper implements DataSourceWrapper {
 
     private void createDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(dataSourceConfig.getDriverClass());
         hikariConfig.setJdbcUrl(dataSourceConfig.getJdbcUrl());
         hikariConfig.setUsername(dataSourceConfig.getUser());
         hikariConfig.setPassword(dataSourceConfig.getPassword());

@@ -1,11 +1,11 @@
 package org.min.watergap.intake.full.rdbms.ins.mysql;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.intake.full.rdbms.RdbmsFullExtractor;
 import org.min.watergap.intake.full.rdbms.to.TableStruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
  * @Create by metaX.h on 2021/11/4 23:30
  */
 public class MysqlFullExtractor extends RdbmsFullExtractor {
-    private static final Logger LOG = LoggerFactory.getLogger(MysqlFullExtractor.class);
+    private static final Logger LOG = LogManager.getLogger(MysqlFullExtractor.class);
 
     @Override
     protected void extractTableSchema() throws WaterGapException {

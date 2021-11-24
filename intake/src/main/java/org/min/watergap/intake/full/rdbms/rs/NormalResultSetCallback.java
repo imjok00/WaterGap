@@ -1,6 +1,7 @@
 package org.min.watergap.intake.full.rdbms.rs;
 
 import org.min.watergap.common.annotation.ResultSetMapping;
+import org.min.watergap.intake.full.rdbms.to.BaseStruct;
 import org.min.watergap.intake.full.rdbms.to.ColumnStruct;
 
 import java.beans.IntrospectionException;
@@ -18,16 +19,22 @@ import java.util.List;
  *
  * @Create by metaX.h on 2021/11/21 22:14
  */
-public class NormalResultSetCallback implements ResultSetCallback {
+public class NormalResultSetCallback<T extends BaseStruct> implements ResultSetCallback {
 
-    private List<ColumnStruct> baseStructs = new ArrayList<>();
+    private List<T> baseStructs = new ArrayList<>();
+
+    private Class instanceClass;
+
+    public NormalResultSetCallback(Class instanceClass) {
+        this.instanceClass = instanceClass;
+    }
 
     @Override
     public void callBack(ResultSet resultSet) throws SQLException {
         try {
             while (resultSet.next()) {
-                ColumnStruct t = new ColumnStruct();
-                for (Field field : ColumnStruct.class.getDeclaredFields()) {
+                T t = (T) instanceClass.newInstance();
+                for (Field field : instanceClass.getDeclaredFields()) {
                     if(field.isAnnotationPresent(ResultSetMapping.class)) {
                         ResultSetMapping resultSetMapping = field.getAnnotation(ResultSetMapping.class);
                         String columnName = resultSetMapping.value();
@@ -50,7 +57,7 @@ public class NormalResultSetCallback implements ResultSetCallback {
         }
     }
 
-    public List<ColumnStruct> getBaseStructs() {
+    public List<T> getBaseStructs() {
         return baseStructs;
     }
 }

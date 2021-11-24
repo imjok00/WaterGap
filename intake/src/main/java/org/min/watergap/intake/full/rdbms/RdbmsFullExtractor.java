@@ -1,13 +1,13 @@
 package org.min.watergap.intake.full.rdbms;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.intake.full.FullExtractor;
 import org.min.watergap.intake.full.rdbms.rs.NormalResultSetCallback;
 import org.min.watergap.intake.full.rdbms.rs.ResultSetCallback;
 import org.min.watergap.intake.full.rdbms.to.ColumnStruct;
 import org.min.watergap.intake.full.rdbms.to.TableStruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.List;
  * @Create by metaX.h on 2021/11/10 23:16
  */
 public abstract class RdbmsFullExtractor extends FullExtractor {
-    private static final Logger LOG = LoggerFactory.getLogger(RdbmsFullExtractor.class);
+    private static final Logger LOG = LogManager.getLogger(RdbmsFullExtractor.class);
 
     protected abstract void extractTableSchema() throws WaterGapException;
 
@@ -101,7 +101,7 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
             connection = dataSource.getConnection();
             DatabaseMetaData metaData = connection.getMetaData();
             resultSet = metaData.getColumns(catalog, schema, table, null);
-            NormalResultSetCallback normalResultSetCallback = new NormalResultSetCallback();
+            NormalResultSetCallback normalResultSetCallback = new NormalResultSetCallback(ColumnStruct.class);
             normalResultSetCallback.callBack(resultSet);
             return normalResultSetCallback.getBaseStructs();
         } catch (Exception e) {
