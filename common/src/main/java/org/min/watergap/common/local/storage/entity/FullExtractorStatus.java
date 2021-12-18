@@ -12,6 +12,11 @@ import java.util.List;
  */
 public class FullExtractorStatus extends AbstractLocalStorageEntity {
 
+    public static List<String> ALL_COLUMNS
+            = Arrays.asList("id", "schema", "tableName", "currentOffset", "status", "createSql", "primaryKeys");
+
+    public static String MAPPING_LOCAL_TABLE_NAME = "FULL_EXTRACTOR_STATUS";
+
     // 主键
     private Long id;
     // 数据库schema
@@ -83,8 +88,13 @@ public class FullExtractorStatus extends AbstractLocalStorageEntity {
         this.primaryKeys = primaryKeys;
     }
 
+    @Override
+    public String getLocalTableName() {
+        return MAPPING_LOCAL_TABLE_NAME;
+    }
+
     public List<String> getSelectColumns() {
-        return Arrays.asList("id", "schema", "tableName", "currentOffset", "status", "createSql", "primaryKeys");
+        return ALL_COLUMNS;
     }
 
     @Override

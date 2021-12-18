@@ -1,4 +1,4 @@
-package org.min.watergap.intake.full.rdbms.rs;
+package org.min.watergap.intake.full.rdbms.result;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

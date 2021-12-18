@@ -27,8 +27,6 @@
         </Console>
     </Appenders>
     <Loggers>
-        <!--  -->
-        <logger name="org.mybatis" level="INFO"></logger>
         <Root level="all">
             <AppenderRef ref="STDOUT"/>
         </Root>

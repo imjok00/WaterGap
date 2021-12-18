@@ -1,14 +1,14 @@
 package org.min.watergap.test;
 
 import junit.framework.TestCase;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.min.watergap.common.datasource.config.DataSourceConfig;
 import org.min.watergap.common.datasource.config.mysql.MysqlDataSourceConfig;
 import org.min.watergap.common.datasource.mysql.MysqlDataSource;
-import org.min.watergap.intake.full.rdbms.ins.mysql.MysqlFullExtractor;
-import org.min.watergap.intake.full.rdbms.to.ColumnStruct;
+import org.min.watergap.intake.full.rdbms.extractor.MysqlFullExtractor;
+import org.min.watergap.intake.full.rdbms.struct.ColumnStruct;
 
 import java.sql.SQLException;
 import java.util.List;

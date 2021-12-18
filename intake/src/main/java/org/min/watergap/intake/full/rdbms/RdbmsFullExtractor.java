@@ -1,13 +1,15 @@
 package org.min.watergap.intake.full.rdbms;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
+import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.intake.full.FullExtractor;
-import org.min.watergap.intake.full.rdbms.rs.NormalResultSetCallback;
-import org.min.watergap.intake.full.rdbms.rs.ResultSetCallback;
-import org.min.watergap.intake.full.rdbms.to.ColumnStruct;
-import org.min.watergap.intake.full.rdbms.to.TableStruct;
+import org.min.watergap.intake.full.rdbms.result.NormalResultSetCallback;
+import org.min.watergap.intake.full.rdbms.result.ResultSetCallback;
+import org.min.watergap.intake.full.rdbms.struct.ColumnStruct;
+import org.min.watergap.intake.full.rdbms.struct.SchemaStruct;
+import org.min.watergap.intake.full.rdbms.struct.TableStruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ import java.util.List;
  * @Create by metaX.h on 2021/11/10 23:16
  */
 public abstract class RdbmsFullExtractor extends FullExtractor {
-    private static final Logger LOG = LogManager.getLogger(RdbmsFullExtractor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RdbmsFullExtractor.class);
 
     protected abstract void extractTableSchema() throws WaterGapException;
 
@@ -33,36 +35,46 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
         extractTableDatas();
     }
 
-    protected List<TableStruct> getAllTableStruct() throws SQLException {
-        final List<TableStruct> result = new ArrayList<>();
-        switch (baseConfig.scope) {
-            case SOME_TABLE: // 只是迁移部分表
-                baseConfig.getScopePairs().forEach(scopePair -> {
-                    result.add(new TableStruct(scopePair.getSchemaName(), scopePair.getTableName()));
+    /**
+     * 基本的几种数据类型导出
+     */
+
+
+    /**
+     * 存储所有的表表名，为了控制内存占用，边取表名边存
+     * @return
+     * @throws SQLException
+     */
+    protected int saveAllTableNames() throws SQLException {
+        //switch (baseConfig.getScope()) {
+            //case ALL_DATABASE: // 迁移整个数据库
+           //     break;
+        //}
+    }
+
+    /**
+     * 存入所有的schema对象
+     * @return
+     * @throws SQLException
+     */
+    protected List<SchemaStruct> getAllSchemaStructs() throws SQLException {
+        final List<SchemaStruct> result = new ArrayList<>();
+        switch (baseConfig.getScope().getScopeType()) {
+            case PARTIAL_DATABASE: // 只是迁移部分库
+
+            case PARTIAL_TABLE: // 只是迁移部分表
+                baseConfig.getScope().getSchemaMaps().forEach(schemaMap -> {
+                    result.add(SchemaStruct.newObject(schemaMap.getSchemaName()));
                 });
                 break;
             case ALL_DATABASE: // 迁移整个库
-                result.addAll(showAllDatabases());
-                break;
-            case SOME_DATABASE:
-                baseConfig.getScopePairs().forEach(scopePair -> {
-                    try {
-                        result.addAll(showAllTables(scopePair.getSchemaName()));
-                    } catch (SQLException e) {
-                        LOG.error("can not get table from schema {}", scopePair.getSchemaName(), e);
-                        throw new WaterGapException("get source tables error", e);
-                    }
-                });
-                break;
             default:
-                LOG.warn("scope config is error");
+                result.addAll(showAllSchemas());
                 break;
         }
-
-        result.forEach(tableStruct -> {
-
-        });
-
+        if (CollectionsUtils.isEmpty(result)) {
+            LOG.warn("full stage, can't found any schema to migrate!");
+        }
         return result;
     }
 
@@ -74,12 +86,12 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
         return tableStructs;
     }
 
-    private List<TableStruct> showAllDatabases() throws SQLException {
-        List<TableStruct> tableStructs = new ArrayList<>();
-        executeQuery(dbDialect.SHOW_DATABASES(), (resultSet -> {
-            tableStructs.addAll(showAllTables(resultSet.getString(1)));
-        }));
-        return tableStructs;
+    private List<SchemaStruct> showAllSchemas() throws SQLException {
+        List<SchemaStruct> schemaStructs = new ArrayList<>();
+        executeQuery(dbDialect.SHOW_DATABASES(), (resultSet) -> {
+            schemaStructs.add(SchemaStruct.newObject(resultSet.getString(1)));
+        });
+        return schemaStructs;
     }
 
     private TableStruct showTableMeta(TableStruct tableStruct) throws SQLException {

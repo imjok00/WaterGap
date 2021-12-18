@@ -1,4 +1,4 @@
-package org.min.watergap.intake.full.rdbms.to;
+package org.min.watergap.intake.full.rdbms.struct;
 
 import java.util.List;
 

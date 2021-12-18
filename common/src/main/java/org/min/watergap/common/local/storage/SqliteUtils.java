@@ -1,13 +1,15 @@
 package org.min.watergap.common.local.storage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.min.watergap.common.datasource.config.DataSourceConfig;
 import org.min.watergap.common.exception.LocalStorageException;
+import org.min.watergap.common.local.storage.datasource.LocalStorageSource;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.utils.CollectionsUtils;
+import org.sqlite.SQLiteException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,8 +21,40 @@ import java.util.Map;
  * @Create by metaX.h on 2021/11/7 13:50
  */
 public class SqliteUtils {
+    private static final Logger LOG = LogManager.getLogger(SqliteUtils.class);
 
-    private static final String TEMPLATE_SQLITE_JDBC_URL = "jdbc:sqlite:%s.db";
+    private static final String SQLITE_JDBC_URL = "jdbc:sqlite:local.db";
+
+    private static final String SQLITE_DRIVER_CLASS = "org.sqlite.JDBC";
+
+    private static LocalStorageSource dataSource;
+
+    static {
+        DataSourceConfig dataSourceConfig = new DataSourceConfig() {
+            @Override
+            public String getJdbcUrl() {
+                return SQLITE_JDBC_URL;
+            }
+
+            @Override
+            public String getDriverClass() {
+                return SQLITE_DRIVER_CLASS;
+            }
+        };
+        dataSource = new LocalStorageSource(dataSourceConfig);
+        prepare();
+    }
+
+    private static void prepare() {
+        try {
+            executeSQL(TableCreateSql.CREATE_FULL_EXTRACTOR_STATUS_TABLE);
+            executeSQL(TableCreateSql.CREATE_FULL_EXTRACTOR_STATUS_INDEX);
+        } catch (SQLiteException sqliteException) {
+            // ignore
+        } catch (SQLException sqlException) {
+            LOG.warn("prepare sqlite error", sqlException);
+        }
+    }
 
     public List<AbstractLocalStorageEntity> selectLocalStorageByCondition (String contextId,
                                                                            AbstractLocalStorageEntity entity,
@@ -29,24 +63,23 @@ public class SqliteUtils {
         // 组装查询语句
         String sql = assembleSelectSql(entity, condition);
         try (
-                Connection connection = DriverManager.getConnection(String.format(TEMPLATE_SQLITE_JDBC_URL, contextId));
-                Statement statement = connection.createStatement();
-                ResultSet rs = statement.executeQuery(sql)
+            Connection connection = DriverManager.getConnection(SQLITE_JDBC_URL);
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(sql)
         ) {
             while (rs.next()) {
                 results.add(entity.generateObj(rs));
             }
             return results;
         } catch (Exception e) {
-            throw new LocalStorageException("select " + entity.getTableName() + " error", e);
+            throw new LocalStorageException("select " + entity.getLocalTableName() + " error", e);
         }
     }
-
 
     private String assembleSelectSql(AbstractLocalStorageEntity entity, HashMap<String, String> condition) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("select ").append(String.join(",",entity.getSelectColumns())).append(" from ")
-                .append(entity.getTableName());
+                .append(entity.getLocalTableName());
         if (CollectionsUtils.isNotEmptyMap(condition)) {
             List<String> items = new ArrayList<>(condition.size());
             for (Map.Entry<String, String> entry : condition.entrySet()) {
@@ -55,5 +88,14 @@ public class SqliteUtils {
             sqlBuilder.append(String.join(" and ", items));
         }
         return sqlBuilder.toString();
+    }
+
+    public static boolean executeSQL(String sql) throws SQLException {
+        try (
+                Connection connection = dataSource.getDataSource().getConnection();
+                Statement statement = connection.createStatement();
+        ) {
+            return statement.execute(sql);
+        }
     }
 }

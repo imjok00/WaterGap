@@ -1,4 +1,4 @@
-package org.min.watergap.intake.full.rdbms.to;
+package org.min.watergap.intake.full.rdbms.struct;
 
 /**
  * 基础数据类型
@@ -21,6 +21,6 @@ public class BaseStruct {
     }
 
     public static enum BaseType {
-        table, column, function, procedure, event, trigger;
+        schema, table, column, function, procedure, event, trigger;
     }
 }

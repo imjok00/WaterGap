@@ -1,8 +1,8 @@
-package org.min.watergap.intake.full.rdbms.rs;
+package org.min.watergap.intake.full.rdbms.result;
 
 import org.min.watergap.common.annotation.ResultSetMapping;
-import org.min.watergap.intake.full.rdbms.to.BaseStruct;
-import org.min.watergap.intake.full.rdbms.to.ColumnStruct;
+import org.min.watergap.intake.full.rdbms.struct.BaseStruct;
+import org.min.watergap.intake.full.rdbms.struct.ColumnStruct;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;

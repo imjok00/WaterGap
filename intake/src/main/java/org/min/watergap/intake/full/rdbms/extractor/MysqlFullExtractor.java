@@ -1,11 +1,11 @@
-package org.min.watergap.intake.full.rdbms.ins.mysql;
+package org.min.watergap.intake.full.rdbms.extractor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.intake.full.rdbms.RdbmsFullExtractor;
-import org.min.watergap.intake.full.rdbms.to.TableStruct;
+import org.min.watergap.intake.full.rdbms.struct.SchemaStruct;
 
 import java.util.List;
 
@@ -19,18 +19,16 @@ public class MysqlFullExtractor extends RdbmsFullExtractor {
 
     @Override
     protected void extractTableSchema() throws WaterGapException {
-        List<TableStruct> tableStructs = null;
+        List<SchemaStruct> tableStructs = null;
         try {
-            tableStructs = getAllTableStruct();
+            tableStructs = getAllSchemaStructs();
         } catch (Exception e) {
             throw new WaterGapException("show table struct error", e);
         }
-        if (CollectionsUtils.isEmpty(tableStructs)) {
-            LOG.warn("can not found table to intake");
+        if (CollectionsUtils.isNotEmpty(tableStructs)) {
+            //FullSchemaStatus
+            //localFileSaver.FullSchemaStatus
         }
-        tableStructs.forEach(tableStruct -> {
-
-        });
 
     }
 

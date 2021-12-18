@@ -3,7 +3,8 @@ package org.min.watergap.intake.full;
 import org.min.watergap.common.config.BaseConfig;
 import org.min.watergap.intake.Extractor;
 import org.min.watergap.intake.dialect.DBDialect;
-import org.min.watergap.intake.full.rdbms.rs.ResultSetCallback;
+import org.min.watergap.intake.full.rdbms.result.ResultSetCallback;
+import org.min.watergap.intake.full.rdbms.save.LocalFileSaver;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -19,7 +20,9 @@ public abstract class FullExtractor implements Extractor {
 
     protected BaseConfig baseConfig;
 
-    protected DBDialect dbDialect;
+    protected DBDialect sourceDBDialect;
+
+    protected LocalFileSaver localFileSaver;
 
     public void executeQuery(String querySql, ResultSetCallback resultSetCallback) throws SQLException {
         executeQuery(null, querySql, resultSetCallback);
@@ -35,6 +38,26 @@ public abstract class FullExtractor implements Extractor {
                 connection.setCatalog(catalog);
             }
             statement = connection.createStatement();
+            resultSet = statement.executeQuery(querySql);
+            resultSetCallback.callBack(resultSet);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            releaseConnect(connection, statement, resultSet);
+        }
+    }
+
+    public void executeStreamQuery(String catalog, String querySql, ResultSetCallback resultSetCallback) throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            if (catalog != null) {
+                connection.setCatalog(catalog);
+            }
+            statement = connection.prepareStatement(querySql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            statement.setFetchSize(Integer.MIN_VALUE);
             resultSet = statement.executeQuery(querySql);
             resultSetCallback.callBack(resultSet);
         } catch (Exception e) {
@@ -75,10 +98,10 @@ public abstract class FullExtractor implements Extractor {
     }
 
     public DBDialect getDbDialect() {
-        return dbDialect;
+        return sourceDBDialect;
     }
 
     public void setDbDialect(DBDialect dbDialect) {
-        this.dbDialect = dbDialect;
+        this.sourceDBDialect = dbDialect;
     }
 }
