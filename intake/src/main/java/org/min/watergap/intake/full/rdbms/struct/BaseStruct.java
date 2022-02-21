@@ -23,4 +23,20 @@ public class BaseStruct {
     public static enum BaseType {
         schema, table, column, function, procedure, event, trigger;
     }
+
+    public static enum migrateStatus {
+        INIT(0), // 初始化
+        FAIL(-1), // 失败
+        SUCCESS(1); // 成功
+
+
+        private int status;
+        migrateStatus(int status) {
+            this.status = status;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+    }
 }

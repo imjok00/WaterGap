@@ -1,20 +1,24 @@
 package org.min.watergap.intake.full;
 
 import org.min.watergap.common.config.BaseConfig;
-import org.min.watergap.intake.Extractor;
+import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
+import org.min.watergap.intake.full.rdbms.local.LocalFullStatusSaver;
 import org.min.watergap.intake.full.rdbms.result.ResultSetCallback;
-import org.min.watergap.intake.full.rdbms.save.LocalFileSaver;
+import org.min.watergap.piping.pip.StructPiping;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
- * 全量导出方法
+ * 数据内容抽取器
  *
  * @Create by metaX.h on 2021/11/4 23:26
  */
-public abstract class FullExtractor implements Extractor {
+public abstract class DBDataPumper implements Pumper {
 
     protected DataSource dataSource;
 
@@ -22,7 +26,12 @@ public abstract class FullExtractor implements Extractor {
 
     protected DBDialect sourceDBDialect;
 
-    protected LocalFileSaver localFileSaver;
+    protected LocalFullStatusSaver localFileSaver;
+
+    protected StructPiping fullPiping;
+
+
+
 
     public void executeQuery(String querySql, ResultSetCallback resultSetCallback) throws SQLException {
         executeQuery(null, querySql, resultSetCallback);

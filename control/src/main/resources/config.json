@@ -1,0 +1,19 @@
+{
+  "source" : {
+    "dbType" : "Mysql",
+    "ip" : "127.0.0.1",
+    "port" : 13306,
+    "databaseName" : "testdb",
+    "user" : "root",
+    "password" : "123456",
+    "readonly" : "true"
+  },
+  "target" : {
+    "dbType" : "Mysql",
+    "ip" : "127.0.0.1",
+    "port" : 23306,
+    "databaseName" : "mysql",
+    "user" : "root",
+    "password" : "123456"
+  }
+}

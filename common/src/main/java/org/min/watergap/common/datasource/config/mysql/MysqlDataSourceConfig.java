@@ -23,4 +23,5 @@ public class MysqlDataSourceConfig extends DataSourceConfig {
     public String getDriverClass() {
         return "com.mysql.cj.jdbc.Driver";
     }
+
 }

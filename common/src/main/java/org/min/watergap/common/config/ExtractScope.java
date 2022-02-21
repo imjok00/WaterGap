@@ -16,7 +16,7 @@ public class ExtractScope {
     private ScopeType scopeType;
 
     // 迁移的数据的范围
-    private List<schemaMap> schemaMaps;
+    private List<SchemaMap> schemaMaps;
 
     public ExtractScope(ScopeType scopeType) {
         this.scopeType = scopeType;
@@ -30,11 +30,11 @@ public class ExtractScope {
         this.scopeType = scopeType;
     }
 
-    public List<schemaMap> getSchemaMaps() {
+    public List<SchemaMap> getSchemaMaps() {
         return schemaMaps;
     }
 
-    public void setSchemaMaps(List<schemaMap> schemaMaps) {
+    public void setSchemaMaps(List<SchemaMap> schemaMaps) {
         this.schemaMaps = schemaMaps;
     }
 
@@ -46,11 +46,11 @@ public class ExtractScope {
         }
     }
 
-    public class schemaMap {
+    public class SchemaMap {
         private String schemaName;
         private List<String> tableNames;
 
-        public schemaMap(String schemaName) {
+        public SchemaMap(String schemaName) {
             this.schemaName = schemaName;
         }
 

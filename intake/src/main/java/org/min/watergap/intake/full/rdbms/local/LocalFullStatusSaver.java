@@ -1,7 +1,8 @@
 package org.min.watergap.intake.full.rdbms.local;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.local.storage.SqliteUtils;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 
@@ -15,11 +16,12 @@ import java.sql.SQLException;
 public class LocalFullStatusSaver {
     private static final Logger LOG = LogManager.getLogger(LocalFullStatusSaver.class);
 
-    public boolean save(AbstractLocalStorageEntity entity) {
+    public static boolean save(AbstractLocalStorageEntity entity) throws SQLException {
         try {
             return SqliteUtils.executeSQL(entity.generateInsert());
         } catch (SQLException e) {
-            LOG.info("execute sql : {} error", entity.generateInsert());
+            LOG.error("execute sql : {} error", entity.generateInsert());
+            throw e;
         }
     }
 

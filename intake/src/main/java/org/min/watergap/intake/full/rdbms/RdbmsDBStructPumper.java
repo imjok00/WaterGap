@@ -1,8 +1,9 @@
 package org.min.watergap.intake.full.rdbms;
 
+import org.min.watergap.common.config.WaterGapGlobalConfig;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.utils.CollectionsUtils;
-import org.min.watergap.intake.full.FullExtractor;
+import org.min.watergap.intake.full.DBStructPumper;
 import org.min.watergap.intake.full.rdbms.result.NormalResultSetCallback;
 import org.min.watergap.intake.full.rdbms.result.ResultSetCallback;
 import org.min.watergap.intake.full.rdbms.struct.ColumnStruct;
@@ -16,44 +17,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 关系形数据库全量数据导出
+ * 关系型数据库数据结构导出
  *
  * @Create by metaX.h on 2021/11/10 23:16
  */
-public abstract class RdbmsFullExtractor extends FullExtractor {
-    private static final Logger LOG = LoggerFactory.getLogger(RdbmsFullExtractor.class);
+public abstract class RdbmsDBStructPumper extends DBStructPumper {
+    private static final Logger LOG = LoggerFactory.getLogger(RdbmsDBStructPumper.class);
 
     protected abstract void extractTableSchema() throws WaterGapException;
 
-    protected abstract void extractTableDatas();
+    protected abstract void extractTableStructs() throws WaterGapException;
+
+    protected abstract void extractTableDatas() throws WaterGapException;
 
     @Override
-    public void extractor() throws WaterGapException {
+    public void pump() throws WaterGapException {
         // step 1: get all table schema into localstorage
         extractTableSchema();
-        // step 2: get all table data into localstorage
-        extractTableDatas();
+        // step 2: get all table struct into localstorage
+        extractTableStructs();
     }
-
-    /**
-     * 基本的几种数据类型导出
-     */
-
 
     /**
      * 存储所有的表表名，为了控制内存占用，边取表名边存
      * @return
      * @throws SQLException
      */
-    protected int saveAllTableNames() throws SQLException {
+    //protected int saveAllTableNames() throws SQLException {
         //switch (baseConfig.getScope()) {
             //case ALL_DATABASE: // 迁移整个数据库
            //     break;
         //}
-    }
+    //}
 
     /**
      * 存入所有的schema对象
+     *
      * @return
      * @throws SQLException
      */
@@ -61,7 +60,6 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
         final List<SchemaStruct> result = new ArrayList<>();
         switch (baseConfig.getScope().getScopeType()) {
             case PARTIAL_DATABASE: // 只是迁移部分库
-
             case PARTIAL_TABLE: // 只是迁移部分表
                 baseConfig.getScope().getSchemaMaps().forEach(schemaMap -> {
                     result.add(SchemaStruct.newObject(schemaMap.getSchemaName()));
@@ -80,7 +78,7 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
 
     private List<TableStruct> showAllTables(String catalog) throws SQLException {
         List<TableStruct> tableStructs = new ArrayList<>();
-        executeQuery(catalog, dbDialect.SHOW_TABLES(), (resultSet) -> {
+        executeQuery(catalog, sourceDBDialect.SHOW_TABLES(), (resultSet) -> {
             tableStructs.add(new TableStruct(catalog, resultSet.getString(1)));
         });
         return tableStructs;
@@ -88,14 +86,14 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
 
     private List<SchemaStruct> showAllSchemas() throws SQLException {
         List<SchemaStruct> schemaStructs = new ArrayList<>();
-        executeQuery(dbDialect.SHOW_DATABASES(), (resultSet) -> {
+        executeQuery(sourceDBDialect.SHOW_DATABASES(), (resultSet) -> {
             schemaStructs.add(SchemaStruct.newObject(resultSet.getString(1)));
         });
         return schemaStructs;
     }
 
     private TableStruct showTableMeta(TableStruct tableStruct) throws SQLException {
-        executeQuery(tableStruct.getSchema(), dbDialect.SHOW_CREATE_TABLE(tableStruct.getTable()), new ResultSetCallback() {
+        executeQuery(tableStruct.getSchema(), sourceDBDialect.SHOW_CREATE_TABLE(tableStruct.getTable()), new ResultSetCallback() {
             @Override
             public void callBack(ResultSet resultSet) throws SQLException {
                 //tableStruct.setCreateSql(resultSet.getString(2));
@@ -121,5 +119,10 @@ public abstract class RdbmsFullExtractor extends FullExtractor {
         } finally {
             releaseConnect(connection, statement, resultSet);
         }
+    }
+
+    @Override
+    public void init(WaterGapGlobalConfig config) {
+        this.fullPiping
     }
 }

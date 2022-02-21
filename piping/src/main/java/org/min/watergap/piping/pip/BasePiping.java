@@ -1,4 +1,4 @@
-package org.min.watergap.piping;
+package org.min.watergap.piping.pip;
 
 import org.min.watergap.intake.full.rdbms.struct.BaseStruct;
 
@@ -9,8 +9,8 @@ import org.min.watergap.intake.full.rdbms.struct.BaseStruct;
  */
 public interface BasePiping {
 
-    void put(BaseStruct struct);
+    void put(BaseStruct struct) throws InterruptedException;
 
-    BaseStruct poll();
+    BaseStruct poll(long timeout) throws InterruptedException;
 
 }

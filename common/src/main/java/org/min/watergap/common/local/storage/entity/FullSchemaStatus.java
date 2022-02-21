@@ -15,7 +15,7 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
     public static List<String> ALL_COLUMNS
             = Arrays.asList("id", "schemaName", "status");
 
-    private static final String Table_NAME = "FULL_SCHEMA_STATUS";
+    private static final String TABLE_NAME = "FULL_SCHEMA_STATUS";
 
     private int id;
 
@@ -50,7 +50,7 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
 
     @Override
     public String getLocalTableName() {
-        return Table_NAME;
+        return TABLE_NAME;
     }
 
     @Override
