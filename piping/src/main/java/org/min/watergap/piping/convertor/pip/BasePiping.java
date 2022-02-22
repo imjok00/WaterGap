@@ -1,4 +1,4 @@
-package org.min.watergap.piping.pip;
+package org.min.watergap.piping.convertor.pip;
 
 import org.min.watergap.intake.full.rdbms.struct.BaseStruct;
 

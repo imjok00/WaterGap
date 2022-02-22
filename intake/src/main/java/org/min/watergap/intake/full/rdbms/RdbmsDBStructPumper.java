@@ -78,7 +78,7 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
 
     private List<TableStruct> showAllTables(String catalog) throws SQLException {
         List<TableStruct> tableStructs = new ArrayList<>();
-        executeQuery(catalog, sourceDBDialect.SHOW_TABLES(), (resultSet) -> {
+        executeQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
             tableStructs.add(new TableStruct(catalog, resultSet.getString(1)));
         });
         return tableStructs;
@@ -86,14 +86,14 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
 
     private List<SchemaStruct> showAllSchemas() throws SQLException {
         List<SchemaStruct> schemaStructs = new ArrayList<>();
-        executeQuery(sourceDBDialect.SHOW_DATABASES(), (resultSet) -> {
+        executeQuery(pumperDBDialect.SHOW_DATABASES(), (resultSet) -> {
             schemaStructs.add(SchemaStruct.newObject(resultSet.getString(1)));
         });
         return schemaStructs;
     }
 
     private TableStruct showTableMeta(TableStruct tableStruct) throws SQLException {
-        executeQuery(tableStruct.getSchema(), sourceDBDialect.SHOW_CREATE_TABLE(tableStruct.getTable()), new ResultSetCallback() {
+        executeQuery(tableStruct.getSchema(), pumperDBDialect.SHOW_CREATE_TABLE(tableStruct.getTable()), new ResultSetCallback() {
             @Override
             public void callBack(ResultSet resultSet) throws SQLException {
                 //tableStruct.setCreateSql(resultSet.getString(2));
@@ -108,7 +108,7 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
         Statement statement = null;
         ResultSet resultSet = null;
         try {
-            connection = dataSource.getConnection();
+            connection = dataSource.getDataSource().getConnection();
             DatabaseMetaData metaData = connection.getMetaData();
             resultSet = metaData.getColumns(catalog, schema, table, null);
             NormalResultSetCallback normalResultSetCallback = new NormalResultSetCallback(ColumnStruct.class);
@@ -123,6 +123,6 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
 
     @Override
     public void init(WaterGapGlobalConfig config) {
-        this.fullPiping
+
     }
 }

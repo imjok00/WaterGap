@@ -5,7 +5,7 @@ import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
 import org.min.watergap.intake.full.rdbms.local.LocalFullStatusSaver;
 import org.min.watergap.intake.full.rdbms.result.ResultSetCallback;
-import org.min.watergap.piping.pip.StructPiping;
+import org.min.watergap.piping.convertor.pip.StructPiping;
 
 import javax.sql.DataSource;
 import java.sql.Connection;

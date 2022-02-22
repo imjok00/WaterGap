@@ -2,7 +2,7 @@ package org.min.watergap.control.mode;
 
 import org.min.watergap.common.config.WaterGapGlobalConfig;
 import org.min.watergap.intake.Pumper;
-import org.min.watergap.intake.full.rdbms.extractor.MysqlFullExtractor;
+import org.min.watergap.intake.full.rdbms.extractor.MysqlDBStructPumper;
 
 /**
  * 全量模式启动 <br/>
@@ -18,7 +18,7 @@ public class FullStarter implements Runner {
     public void init(WaterGapGlobalConfig baseConfig) {
         switch (baseConfig.getSourceConfig().getDatabaseType()) {
             case MYSQL:
-                fullPumper = new MysqlFullExtractor();
+                fullPumper = new MysqlDBStructPumper();
                 break;
         }
         fullPumper.in

@@ -11,6 +11,8 @@ public class WaterGapContext {
 
     private WaterGapGlobalConfig globalConfig;
 
+    private StructPi
+
     public DataSourceWrapper getInDataSource() {
         return inDataSource;
     }

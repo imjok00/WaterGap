@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.min.watergap.common.datasource.config.DataSourceConfig;
 import org.min.watergap.common.datasource.config.mysql.MysqlDataSourceConfig;
 import org.min.watergap.common.datasource.mysql.MysqlDataSource;
-import org.min.watergap.intake.full.rdbms.extractor.MysqlFullExtractor;
+import org.min.watergap.intake.full.rdbms.extractor.MysqlDBStructPumper;
 import org.min.watergap.intake.full.rdbms.struct.ColumnStruct;
 
 import java.sql.SQLException;
@@ -21,14 +21,14 @@ import java.util.List;
 public class MysqlFullExtractorTest extends TestCase {
     private static final Logger LOG = LogManager.getLogger(MysqlFullExtractorTest.class);
 
-    private static MysqlFullExtractor mysqlFullExtractor;
+    private static MysqlDBStructPumper mysqlFullExtractor;
 
     @Override
     protected void setUp() throws Exception {
         LOG.info("setup start...");
         super.setUp();
         try {
-            mysqlFullExtractor = new MysqlFullExtractor();
+            mysqlFullExtractor = new MysqlDBStructPumper();
             DataSourceConfig baseConfig = new MysqlDataSourceConfig();
             baseConfig.setIp("localhost");
             baseConfig.setPort("3306");

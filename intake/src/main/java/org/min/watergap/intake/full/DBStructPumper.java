@@ -5,7 +5,7 @@ import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
 import org.min.watergap.intake.full.rdbms.result.ResultSetCallback;
-import org.min.watergap.piping.pip.StructPiping;
+import org.min.watergap.piping.convertor.pip.StructPiping;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -25,7 +25,7 @@ public abstract class DBStructPumper implements Pumper {
 
     protected DBDialect pumperDBDialect;
 
-    protected StructPiping fullPiping;
+    protected StructPiping structPiping;
 
 
 

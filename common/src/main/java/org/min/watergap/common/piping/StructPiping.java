@@ -1,28 +1,26 @@
-package org.min.watergap.piping.pip;
-
-import org.min.watergap.intake.full.rdbms.struct.BaseStruct;
+package org.min.watergap.common.piping;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 全量阶段数据传输
+ * 导出的结构对象
  *
  * @Create by metaX.h on 2021/11/28 22:18
  */
 public class StructPiping implements BasePiping {
 
-    private final BlockingQueue<BaseStruct> fSink = new LinkedBlockingQueue<>();
+    private final BlockingQueue<PipingData> fSink = new LinkedBlockingQueue<>();
 
     @Override
-    public void put(BaseStruct struct) throws InterruptedException {
+    public void put(PipingData struct) throws InterruptedException {
 
         fSink.put(struct);
     }
 
     @Override
-    public BaseStruct poll(long timeout) throws InterruptedException {
+    public PipingData poll(long timeout) throws InterruptedException {
         if (timeout <= 0) {
             return fSink.poll();
         } else {

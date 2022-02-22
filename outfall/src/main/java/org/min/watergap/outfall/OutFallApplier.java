@@ -7,7 +7,7 @@ import org.min.watergap.intake.full.rdbms.struct.SchemaStruct;
 import org.min.watergap.outfall.convertor.ConvertorChooser;
 import org.min.watergap.outfall.convertor.StructConvertor;
 import org.min.watergap.outfall.rdbms.DataExecutor;
-import org.min.watergap.piping.pip.StructPiping;
+import org.min.watergap.piping.convertor.pip.StructPiping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
