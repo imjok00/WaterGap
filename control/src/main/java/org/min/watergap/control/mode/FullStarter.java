@@ -1,6 +1,7 @@
 package org.min.watergap.control.mode;
 
 import org.min.watergap.common.config.WaterGapGlobalConfig;
+import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.full.rdbms.extractor.MysqlDBStructPumper;
 
@@ -15,7 +16,7 @@ public class FullStarter implements Runner {
     private Pumper fullPumper;
 
     @Override
-    public void init(WaterGapGlobalConfig baseConfig) {
+    public void init(WaterGapContext waterGapContext) {
         switch (baseConfig.getSourceConfig().getDatabaseType()) {
             case MYSQL:
                 fullPumper = new MysqlDBStructPumper();

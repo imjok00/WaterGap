@@ -1,6 +1,5 @@
 package org.min.watergap.intake.full.rdbms;
 
-import org.min.watergap.common.config.WaterGapGlobalConfig;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.intake.full.DBStructPumper;
@@ -121,8 +120,4 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
         }
     }
 
-    @Override
-    public void init(WaterGapGlobalConfig config) {
-
-    }
 }

@@ -1,6 +1,6 @@
 package org.min.watergap.common.lifecycle;
 
-import org.min.watergap.common.config.WaterGapGlobalConfig;
+import org.min.watergap.common.context.WaterGapContext;
 
 /**
  * 生命周期方法
@@ -9,7 +9,7 @@ import org.min.watergap.common.config.WaterGapGlobalConfig;
  */
 public interface WaterGapLifeCycle {
 
-    void init(WaterGapGlobalConfig config);
+    void init(WaterGapContext waterGapContext);
 
     void destroy();
 }

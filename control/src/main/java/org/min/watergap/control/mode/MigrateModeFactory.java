@@ -1,6 +1,6 @@
 package org.min.watergap.control.mode;
 
-import org.min.watergap.common.config.WaterGapGlobalConfig;
+import org.min.watergap.common.config.mode.StartMode;
 
 /**
  * 迁移模式选择
@@ -10,9 +10,9 @@ public class MigrateModeFactory {
 
     private static Runner DEFAULT_STARTER = new FullStarter();
 
-    public static Runner chooseRunner(WaterGapGlobalConfig config) {
+    public static Runner chooseRunner(StartMode startMode) {
         Runner starter;
-        switch (config.getStarterMode()) {
+        switch (startMode) {
             case ONLY_FULL:
                 starter = new FullStarter();
                 break;

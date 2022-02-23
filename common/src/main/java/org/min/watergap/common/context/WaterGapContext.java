@@ -1,8 +1,14 @@
 package org.min.watergap.common.context;
 
 import org.min.watergap.common.config.WaterGapGlobalConfig;
+import org.min.watergap.common.config.mode.StartMode;
+import org.min.watergap.common.datasource.DataSourceFactory;
 import org.min.watergap.common.datasource.DataSourceWrapper;
+import org.min.watergap.common.piping.StructPiping;
 
+/**
+ * context对象
+ */
 public class WaterGapContext {
 
     private DataSourceWrapper inDataSource;
@@ -11,7 +17,18 @@ public class WaterGapContext {
 
     private WaterGapGlobalConfig globalConfig;
 
-    private StructPi
+    private StructPiping structPiping;
+
+    public WaterGapContext(WaterGapGlobalConfig globalConfig) {
+        this.globalConfig = globalConfig;
+        inDataSource = DataSourceFactory.getDataSource(globalConfig.getSourceConfig());
+        outDataSource = DataSourceFactory.getDataSource(globalConfig.getTargetConfig());
+        structPiping = new StructPiping();
+    }
+
+    public StartMode getStartMode() {
+        return globalConfig.getStarterMode();
+    }
 
     public DataSourceWrapper getInDataSource() {
         return inDataSource;
@@ -35,5 +52,13 @@ public class WaterGapContext {
 
     public void setGlobalConfig(WaterGapGlobalConfig globalConfig) {
         this.globalConfig = globalConfig;
+    }
+
+    public StructPiping getStructPiping() {
+        return structPiping;
+    }
+
+    public void setStructPiping(StructPiping structPiping) {
+        this.structPiping = structPiping;
     }
 }
