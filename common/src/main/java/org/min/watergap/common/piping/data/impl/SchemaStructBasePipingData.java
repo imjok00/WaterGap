@@ -11,6 +11,14 @@ public class SchemaStructBasePipingData extends StructBasePipingData {
 
     private String name;
 
+    public SchemaStructBasePipingData(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     @Override
     public StructType getType() {
         return StructType.SCHEMA;

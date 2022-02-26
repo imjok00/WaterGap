@@ -1,21 +1,22 @@
 package org.min.watergap.outfall.rdbms;
 
+import org.min.watergap.common.context.WaterGapContext;
+import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * 关系数据库，sql执行器
+ * 关系型数据库，SQL执行器
  */
 public class RdbmsDataExecutor implements DataExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(RdbmsDataExecutor.class);
 
-    protected DataSource dataSource;
+    protected DataSourceWrapper dataSource;
 
     @Override
     public int execute(String schema, String sql) {
@@ -31,7 +32,7 @@ public class RdbmsDataExecutor implements DataExecutor {
         Connection connection = null;
         Statement statement = null;
         try {
-            connection = dataSource.getConnection();
+            connection = dataSource.getDataSource().getConnection();
             if (schema != null) {
                 connection.setCatalog(schema);
             }
@@ -60,5 +61,15 @@ public class RdbmsDataExecutor implements DataExecutor {
         if (resultSet != null) {
             resultSet.close();
         }
+    }
+
+    @Override
+    public void init(WaterGapContext waterGapContext) {
+        dataSource = waterGapContext.getOutDataSource();
+    }
+
+    @Override
+    public void destroy() {
+
     }
 }

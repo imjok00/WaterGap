@@ -3,9 +3,7 @@ package org.min.watergap.intake.full;
 import org.min.watergap.common.config.BaseConfig;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
-import org.min.watergap.intake.full.rdbms.local.LocalFullStatusSaver;
 import org.min.watergap.intake.full.rdbms.result.ResultSetCallback;
-import org.min.watergap.piping.convertor.pip.StructPiping;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -25,11 +23,6 @@ public abstract class DBDataPumper implements Pumper {
     protected BaseConfig baseConfig;
 
     protected DBDialect sourceDBDialect;
-
-    protected LocalFullStatusSaver localFileSaver;
-
-    protected StructPiping fullPiping;
-
 
 
 

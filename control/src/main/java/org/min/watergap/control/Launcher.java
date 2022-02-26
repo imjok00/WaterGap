@@ -21,7 +21,7 @@ public class Launcher {
     private static Runner runner;
 
     public static void main(String[] args) {
-        globalConfig = new WaterGapGlobalConfig(SystemPropUtils.getStr(SYS_PROP_JSON_PATH));
+        WaterGapGlobalConfig globalConfig = new WaterGapGlobalConfig(SystemPropUtils.getStr(SYS_PROP_JSON_PATH));
         WaterGapContext waterGapContext = new WaterGapContext(globalConfig);
         runner = MigrateModeFactory.chooseRunner(waterGapContext.getStartMode());
         runner.init(waterGapContext);

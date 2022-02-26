@@ -1,14 +1,9 @@
 package org.min.watergap.intake.full.rdbms.result;
 
 import org.min.watergap.common.annotation.ResultSetMapping;
-import org.min.watergap.intake.full.rdbms.struct.BaseStruct;
-import org.min.watergap.intake.full.rdbms.struct.ColumnStruct;
+import org.min.watergap.common.piping.data.impl.BasePipingData;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,7 +14,7 @@ import java.util.List;
  *
  * @Create by metaX.h on 2021/11/21 22:14
  */
-public class NormalResultSetCallback<T extends BaseStruct> implements ResultSetCallback {
+public class NormalResultSetCallback<T extends BasePipingData> implements ResultSetCallback {
 
     private List<T> baseStructs = new ArrayList<>();
 
@@ -39,7 +34,7 @@ public class NormalResultSetCallback<T extends BaseStruct> implements ResultSetC
                         ResultSetMapping resultSetMapping = field.getAnnotation(ResultSetMapping.class);
                         String columnName = resultSetMapping.value();
                         Object columnValue = resultSet.getObject(columnName);
-                        setColumnValue(field, columnValue, t);
+//                        setColumnValue(field, columnValue, t);
                     }
                 }
                 baseStructs.add(t);
@@ -49,13 +44,13 @@ public class NormalResultSetCallback<T extends BaseStruct> implements ResultSetC
         }
     }
 
-    private void setColumnValue(Field field, Object value, Object obj) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
-        PropertyDescriptor pd = new PropertyDescriptor(field.getName(), ColumnStruct.class);
-        Method wM = pd.getWriteMethod();
-        if (value != null) {
-            wM.invoke(obj, value);
-        }
-    }
+//    private void setColumnValue(Field field, Object value, Object obj) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
+//        PropertyDescriptor pd = new PropertyDescriptor(field.getName(), Column.class);
+//        Method wM = pd.getWriteMethod();
+//        if (value != null) {
+//            wM.invoke(obj, value);
+//        }
+//    }
 
     public List<T> getBaseStructs() {
         return baseStructs;

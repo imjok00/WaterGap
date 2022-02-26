@@ -6,4 +6,8 @@ package org.min.watergap.common.piping.data.impl;
  * @Create by metaX.h on 2022/2/23 23:26
  */
 public abstract class StructBasePipingData extends BasePipingData {
+
+
+
+
 }

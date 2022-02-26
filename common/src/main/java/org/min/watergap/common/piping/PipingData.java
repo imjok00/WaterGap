@@ -6,4 +6,7 @@ package org.min.watergap.common.piping;
  * @Create by metaX.h on 2022/2/23 0:01
  */
 public interface PipingData {
+
+    String generateSQL();
+
 }

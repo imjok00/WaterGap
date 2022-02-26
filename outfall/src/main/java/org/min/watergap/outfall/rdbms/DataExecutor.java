@@ -1,6 +1,8 @@
 package org.min.watergap.outfall.rdbms;
 
-public interface DataExecutor {
+import org.min.watergap.common.lifecycle.WaterGapLifeCycle;
+
+public interface DataExecutor extends WaterGapLifeCycle {
 
     int execute(String schema, String sql);
 

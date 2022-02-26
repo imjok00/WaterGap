@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.local.storage.SqliteUtils;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
+import org.min.watergap.common.piping.PipingData;
 
 import java.sql.SQLException;
 
@@ -16,13 +17,17 @@ import java.sql.SQLException;
 public class LocalFullStatusSaver {
     private static final Logger LOG = LogManager.getLogger(LocalFullStatusSaver.class);
 
-    public static boolean save(AbstractLocalStorageEntity entity) throws SQLException {
+    public static boolean save(PipingData entity) throws SQLException {
         try {
-            return SqliteUtils.executeSQL(entity.generateInsert());
+            return SqliteUtils.executeSQL(entity.generateSQL());
         } catch (SQLException e) {
-            LOG.error("execute sql : {} error", entity.generateInsert());
+            LOG.error("execute sql : {} error", entity.generateSQL());
             throw e;
         }
+    }
+
+    public static AbstractLocalStorageEntity switchPipingDataToStoreEntity(PipingData pipingData) {
+        return null;
     }
 
 }

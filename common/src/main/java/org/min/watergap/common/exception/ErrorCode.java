@@ -7,7 +7,7 @@ package org.min.watergap.common.exception;
  */
 public class ErrorCode {
 
-    public static final WaterGapException
+
 
 
 
