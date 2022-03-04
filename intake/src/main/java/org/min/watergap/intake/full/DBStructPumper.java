@@ -24,6 +24,8 @@ import java.sql.Statement;
 public abstract class DBStructPumper implements Pumper {
     private static final Logger LOG = LogManager.getLogger(DBStructPumper.class);
 
+    protected volatile int pumpStatus;
+
     protected DataSourceWrapper dataSource;
 
     protected DBDialect pumperDBDialect;

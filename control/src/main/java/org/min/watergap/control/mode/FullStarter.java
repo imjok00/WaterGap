@@ -2,7 +2,9 @@ package org.min.watergap.control.mode;
 
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.intake.Pumper;
-import org.min.watergap.intake.full.rdbms.extractor.MysqlDBStructPumper;
+import org.min.watergap.intake.full.rdbms.RdbmsDBStructPumper;
+import org.min.watergap.outfall.Drainer;
+import org.min.watergap.outfall.RdbmsOutFallDrainer;
 
 /**
  * 全量模式启动 <br/>
@@ -14,11 +16,14 @@ public class FullStarter implements Runner {
 
     private Pumper fullPumper;
 
+    private Drainer fullDrainer;
+
     @Override
     public void init(WaterGapContext waterGapContext) {
         switch (waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType()) {
             case MYSQL:
-                fullPumper = new MysqlDBStructPumper();
+                fullPumper = new RdbmsDBStructPumper();
+                fullDrainer = new RdbmsOutFallDrainer();
                 break;
         }
     }
@@ -26,10 +31,16 @@ public class FullStarter implements Runner {
     @Override
     public void start() {
         fullPumper.pump();
+        fullDrainer.apply();
     }
 
     @Override
     public void destroy() {
         fullPumper.destroy();
+    }
+
+    @Override
+    public void isStart() {
+
     }
 }

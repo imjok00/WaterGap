@@ -10,6 +10,6 @@ import java.sql.SQLException;
  */
 public interface ResultSetCallback {
 
-    void callBack(ResultSet resultSet) throws SQLException;
+    void callBack(ResultSet resultSet) throws SQLException, InterruptedException;
 
 }

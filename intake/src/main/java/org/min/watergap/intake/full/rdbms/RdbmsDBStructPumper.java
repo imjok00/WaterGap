@@ -1,6 +1,7 @@
 package org.min.watergap.intake.full.rdbms;
 
 import org.min.watergap.common.exception.WaterGapException;
+import org.min.watergap.common.local.storage.LocalDataSaveTool;
 import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.data.impl.TableStructBasePipingData;
@@ -18,17 +19,16 @@ import java.util.List;
  *
  * @Create by metaX.h on 2021/11/10 23:16
  */
-public abstract class RdbmsDBStructPumper extends DBStructPumper {
+public class RdbmsDBStructPumper extends DBStructPumper {
     private static final Logger LOG = LoggerFactory.getLogger(RdbmsDBStructPumper.class);
 
-    protected abstract void extractDBSchema() throws WaterGapException;
 
-    protected abstract void extractTableStructs(SchemaStructBasePipingData pipingData) throws WaterGapException;
 
     @Override
     public void pump() throws WaterGapException {
         // step 1: get all table schema into localstorage
         extractDBSchema();
+
     }
 
     /**
@@ -36,12 +36,14 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
      * @return
      * @throws SQLException
      */
-    //protected int saveAllTableNames() throws SQLException {
-        //switch (baseConfig.getScope()) {
-            //case ALL_DATABASE: // 迁移整个数据库
-           //     break;
-        //}
-    //}
+//    protected int saveAllTableNames() throws SQLException {
+//        switch (baseConfig.getScope()) {
+//            case ALL_DATABASE: // 迁移整个数据库
+//                break;
+//        }
+//    }
+
+
 
     /**
      * 存入所有的schema对象
@@ -69,12 +71,47 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
         return result;
     }
 
-    private List<TableStructBasePipingData> showAllTables(String catalog) throws SQLException {
-        List<TableStructBasePipingData> tableStructs = new ArrayList<>();
-        executeQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
-            tableStructs.add(new TableStructBasePipingData(catalog, resultSet.getString(1)));
+    /**
+     * 取表结构，边取边存
+     * @param catalog
+     * @return
+     * @throws SQLException
+     */
+    private void showAllTables(String catalog) throws SQLException {
+        executeStreamQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
+            TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
+            LocalDataSaveTool.save(pipingData);
+            structPiping.put(pipingData);
         });
-        return tableStructs;
+    }
+
+    private void extractTableStruct() throws InterruptedException {
+        PipingData pipingData = structPiping.poll(pollTimeout);
+        if (pipingData == null) {
+            return;
+        }
+
+    }
+
+    private void extractDBSchema() {
+        List<PipingData> tableStructs = null;
+        try {
+            tableStructs = getAllSchemaStructs();
+        } catch (Exception e) {
+            throw new WaterGapException("show table struct error", e);
+        }
+        if (CollectionsUtils.isNotEmpty(tableStructs)) {
+            tableStructs.forEach(schemaStruct -> {
+                try {
+                    LocalDataSaveTool.save(schemaStruct);
+                    structPiping.put(schemaStruct);
+                } catch (SQLException e) {
+                    throw new WaterGapException("save FullSchemaStatus to local fail", e);
+                } catch (InterruptedException e) {
+                    throw new WaterGapException("put schemaStruct to fsink fail", e);
+                }
+            });
+        }
     }
 
     private List<PipingData> showAllSchemas() throws SQLException {
@@ -85,33 +122,9 @@ public abstract class RdbmsDBStructPumper extends DBStructPumper {
         return schemaStructs;
     }
 
-//    private TableStruct showTableMeta(TableStruct tableStruct) throws SQLException {
-//        executeQuery(tableStruct.getSchema(), pumperDBDialect.SHOW_CREATE_TABLE(tableStruct.getTable()), new ResultSetCallback() {
-//            @Override
-//            public void callBack(ResultSet resultSet) throws SQLException {
-//                //tableStruct.setCreateSql(resultSet.getString(2));
-//            }
-//        });
-//        return tableStruct;
-//
-//    }
 
-//    public List<ColumnStruct> showTableMetaData(String catalog, String schema, String table) throws SQLException {
-//        Connection connection = null;
-//        Statement statement = null;
-//        ResultSet resultSet = null;
-//        try {
-//            connection = dataSource.getDataSource().getConnection();
-//            DatabaseMetaData metaData = connection.getMetaData();
-//            resultSet = metaData.getColumns(catalog, schema, table, null);
-//            NormalResultSetCallback normalResultSetCallback = new NormalResultSetCallback(ColumnStruct.class);
-//            normalResultSetCallback.callBack(resultSet);
-//            return normalResultSetCallback.getBaseStructs();
-//        } catch (Exception e) {
-//            throw e;
-//        } finally {
-//            releaseConnect(connection, statement, resultSet);
-//        }
-//    }
+    @Override
+    public void isStart() {
 
+    }
 }

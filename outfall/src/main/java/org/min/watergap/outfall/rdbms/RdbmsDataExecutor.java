@@ -72,4 +72,9 @@ public class RdbmsDataExecutor implements DataExecutor {
     public void destroy() {
 
     }
+
+    @Override
+    public void isStart() {
+
+    }
 }
