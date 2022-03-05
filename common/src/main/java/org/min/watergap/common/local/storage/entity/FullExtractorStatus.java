@@ -32,6 +32,20 @@ public class FullExtractorStatus extends AbstractLocalStorageEntity {
     // 待迁移表的主键
     private String primaryKeys;
 
+    public FullExtractorStatus() {
+
+    }
+
+    public FullExtractorStatus(String schema, String tableName, String currentOffset,
+                               LocalStorageStatus status, String createSql, String primaryKeys) {
+        this.schema = schema;
+        this.tableName = tableName;
+        this.currentOffset = currentOffset;
+        this.status = status.getStatus();
+        this.createSql = createSql;
+        this.primaryKeys = primaryKeys;
+    }
+
     public Long getId() {
         return id;
     }

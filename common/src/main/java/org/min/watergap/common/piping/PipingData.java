@@ -7,6 +7,6 @@ package org.min.watergap.common.piping;
  */
 public interface PipingData {
 
-    String generateSQL();
+    String generateInsertSQL();
 
 }

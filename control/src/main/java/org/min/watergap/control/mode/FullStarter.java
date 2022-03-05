@@ -23,6 +23,10 @@ public class FullStarter implements Runner {
         switch (waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType()) {
             case MYSQL:
                 fullPumper = new RdbmsDBStructPumper();
+                break;
+        }
+        switch (waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType()) {
+            case MYSQL:
                 fullDrainer = new RdbmsOutFallDrainer();
                 break;
         }

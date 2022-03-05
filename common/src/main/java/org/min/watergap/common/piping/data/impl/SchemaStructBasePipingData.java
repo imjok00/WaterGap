@@ -1,5 +1,7 @@
 package org.min.watergap.common.piping.data.impl;
 
+import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
+import org.min.watergap.common.local.storage.entity.FullSchemaStatus;
 import org.min.watergap.common.rdbms.struct.StructType;
 
 /**
@@ -22,5 +24,10 @@ public class SchemaStructBasePipingData extends StructBasePipingData {
     @Override
     public StructType getType() {
         return StructType.SCHEMA;
+    }
+
+    @Override
+    public String generateInsertSQL() {
+        return new FullSchemaStatus(this.name, AbstractLocalStorageEntity.LocalStorageStatus.INIT).generateInsert();
     }
 }

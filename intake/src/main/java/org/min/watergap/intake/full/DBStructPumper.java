@@ -55,11 +55,11 @@ public abstract class DBStructPumper implements Pumper {
 
     }
 
-    public void executeQuery(String querySql, ResultSetCallback resultSetCallback) throws SQLException {
+    public void executeQuery(String querySql, ResultSetCallback resultSetCallback) throws SQLException, InterruptedException {
         executeQuery(null, querySql, resultSetCallback);
     }
 
-    public void executeQuery(String catalog, String querySql, ResultSetCallback resultSetCallback) throws SQLException {
+    public void executeQuery(String catalog, String querySql, ResultSetCallback resultSetCallback) throws SQLException, InterruptedException {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
@@ -78,7 +78,7 @@ public abstract class DBStructPumper implements Pumper {
         }
     }
 
-    public void executeStreamQuery(String catalog, String querySql, ResultSetCallback resultSetCallback) throws SQLException {
+    public void executeStreamQuery(String catalog, String querySql, ResultSetCallback resultSetCallback) throws SQLException, InterruptedException {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;

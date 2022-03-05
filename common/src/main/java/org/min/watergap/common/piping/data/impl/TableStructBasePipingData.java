@@ -1,5 +1,6 @@
 package org.min.watergap.common.piping.data.impl;
 
+import org.min.watergap.common.local.storage.entity.FullExtractorStatus;
 import org.min.watergap.common.rdbms.struct.StructType;
 
 /**
@@ -23,4 +24,8 @@ public class TableStructBasePipingData extends StructBasePipingData {
         return StructType.TABLE;
     }
 
+    @Override
+    public String generateInsertSQL() {
+        return new FullExtractorStatus().generateInsert();
+    }
 }

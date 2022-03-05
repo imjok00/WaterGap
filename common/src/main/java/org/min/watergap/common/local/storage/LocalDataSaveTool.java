@@ -17,9 +17,9 @@ public class LocalDataSaveTool {
 
     public static boolean save(PipingData entity) throws SQLException {
         try {
-            return SqliteUtils.executeSQL(entity.generateSQL());
+            return SqliteUtils.executeSQL(entity.generateInsertSQL());
         } catch (SQLException e) {
-            LOG.error("execute sql : {} error", entity.generateSQL());
+            LOG.error("execute sql : {} error", entity.generateInsertSQL());
             throw e;
         }
     }

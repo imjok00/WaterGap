@@ -21,8 +21,16 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
 
     private String schemaName;
 
-    // 迁移状态 0：初始化 1：迁移中 2：迁移完成
     private int status;
+
+    public FullSchemaStatus() {
+
+    }
+
+    public FullSchemaStatus(String schemaName, LocalStorageStatus status) {
+        this.schemaName = schemaName;
+        this.status = status.getStatus();
+    }
 
     public int getId() {
         return id;

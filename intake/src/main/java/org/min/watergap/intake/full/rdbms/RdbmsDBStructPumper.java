@@ -51,7 +51,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
      * @return
      * @throws SQLException
      */
-    protected List<PipingData> getAllSchemaStructs() throws SQLException {
+    protected List<PipingData> getAllSchemaStructs() throws SQLException, InterruptedException {
         final List<PipingData> result = new ArrayList<>();
         switch (waterGapContext.getGlobalConfig().getScope().getScopeType()) {
             case PARTIAL_DATABASE: // 只是迁移部分库
@@ -77,7 +77,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
      * @return
      * @throws SQLException
      */
-    private void showAllTables(String catalog) throws SQLException {
+    private void showAllTables(String catalog) throws SQLException, InterruptedException {
         executeStreamQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
             TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
             LocalDataSaveTool.save(pipingData);
@@ -114,7 +114,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         }
     }
 
-    private List<PipingData> showAllSchemas() throws SQLException {
+    private List<PipingData> showAllSchemas() throws SQLException, InterruptedException {
         List<PipingData> schemaStructs = new ArrayList<>();
         executeQuery(pumperDBDialect.SHOW_DATABASES(), (resultSet) -> {
             schemaStructs.add(new SchemaStructBasePipingData(resultSet.getString(1)));

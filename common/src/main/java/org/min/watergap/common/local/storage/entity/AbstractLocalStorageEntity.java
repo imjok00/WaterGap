@@ -25,4 +25,17 @@ public abstract class AbstractLocalStorageEntity {
         return String.format("INSERT INTO %s (%s) VALUES (%s)", getLocalTableName(), columns, paceHolders);
     }
 
+    public static enum LocalStorageStatus {
+        INIT(0), complete(1);
+
+        private int status;
+
+        LocalStorageStatus(int status) {
+            this.status = status;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+    }
 }
