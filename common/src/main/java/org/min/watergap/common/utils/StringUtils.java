@@ -18,4 +18,8 @@ public class StringUtils {
     public static String createRepeatedStr(String seed,int n) {
         return String.join("", Collections.nCopies(n, seed));
     }
+
+    public static String createReplaceStr(String seed,int n) {
+        return String.join(",", Collections.nCopies(n, seed));
+    }
 }

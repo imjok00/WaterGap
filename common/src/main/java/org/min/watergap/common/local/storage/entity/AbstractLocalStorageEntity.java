@@ -21,7 +21,7 @@ public abstract class AbstractLocalStorageEntity {
 
     public String generateInsert() {
         String columns = String.join(",", getSelectColumns());
-        String paceHolders = StringUtils.createRepeatedStr("?", getSelectColumns().size());
+        String paceHolders = StringUtils.createReplaceStr("'%s'", getSelectColumns().size());
         return String.format("INSERT INTO %s (%s) VALUES (%s)", getLocalTableName(), columns, paceHolders);
     }
 

@@ -1,6 +1,7 @@
 {
+  "mode" : "ONLY_FULL",
   "source" : {
-    "dbType" : "Mysql",
+    "dbType" : "MySQL",
     "ip" : "127.0.0.1",
     "port" : 13306,
     "databaseName" : "testdb",
@@ -9,7 +10,7 @@
     "readonly" : "true"
   },
   "target" : {
-    "dbType" : "Mysql",
+    "dbType" : "MySQL",
     "ip" : "127.0.0.1",
     "port" : 23306,
     "databaseName" : "mysql",

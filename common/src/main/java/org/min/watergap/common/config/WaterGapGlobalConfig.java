@@ -24,6 +24,9 @@ public class WaterGapGlobalConfig extends BaseConfig{
     private String jsonPath;
 
     public WaterGapGlobalConfig(String jsonPath) {
+        if (jsonPath == null) { // 没有设置json配置文件
+            jsonPath = this.getClass().getResource("/config.json").getPath();
+        }
         this.jsonPath = jsonPath;
         init();
     }
@@ -32,32 +35,20 @@ public class WaterGapGlobalConfig extends BaseConfig{
         return sourceConfig;
     }
 
-    public void setSourceConfig(DataSourceConfig sourceConfig) {
-        this.sourceConfig = sourceConfig;
-    }
-
     public DataSourceConfig getTargetConfig() {
         return targetConfig;
-    }
-
-    public void setTargetConfig(DataSourceConfig targetConfig) {
-        this.targetConfig = targetConfig;
     }
 
     public StartMode getStarterMode() {
         return starterMode;
     }
 
-    public void setStarterMode(StartMode starterMode) {
-        this.starterMode = starterMode;
-    }
-
     public void init() {
         JsonParser jsonParser = new JsonParser();
         try {
             JsonObject propJsonObject = jsonParser.parse(new FileReader(jsonPath)).getAsJsonObject();
-            sourceConfig.load(propJsonObject.getAsJsonObject(DataSourceConfig.CONFIG_ROOT_SOURCE));
-            targetConfig.load(propJsonObject.getAsJsonObject(DataSourceConfig.CONFIG_ROOT_TARGET));
+            sourceConfig = DataSourceConfig.getInstance(propJsonObject.getAsJsonObject(DataSourceConfig.CONFIG_ROOT_SOURCE));
+            targetConfig = DataSourceConfig.getInstance(propJsonObject.getAsJsonObject(DataSourceConfig.CONFIG_ROOT_TARGET));
             starterMode = StartMode.valueOf(propJsonObject.get(CONFIG_ROOT_MODE).getAsString());
         } catch (FileNotFoundException fileNotFoundException) {
             throw new WaterGapException("file not found : " + jsonPath, fileNotFoundException);

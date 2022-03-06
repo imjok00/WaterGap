@@ -34,8 +34,10 @@ public abstract class OutFallDrainer implements Drainer {
     @Override
     public void apply() {
         try {
-            PipingData pipingData = structPiping.poll(pollTimeout);
-            doExecute((BasePipingData) pipingData);
+            for (;;) {
+                PipingData pipingData = structPiping.poll(pollTimeout);
+                doExecute((BasePipingData) pipingData);
+            }
         } catch (InterruptedException e) {
             LOG.error("poll event from fsink fail", e);
         }

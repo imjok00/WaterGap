@@ -9,7 +9,7 @@ public class ConvertorChooser {
     private static HashMap<DatabaseType, StructConvertor> convertorHashMap = new HashMap<>();
 
     static {
-        convertorHashMap.put(DatabaseType.MYSQL, new MysqlStructConvertor());
+        convertorHashMap.put(DatabaseType.MySQL, new MysqlStructConvertor());
     }
 
     public static StructConvertor chooseConvertor(DatabaseType databaseType) {

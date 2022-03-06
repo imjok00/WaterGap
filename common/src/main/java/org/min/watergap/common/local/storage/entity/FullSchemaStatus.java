@@ -13,7 +13,7 @@ import java.util.List;
 public class FullSchemaStatus extends AbstractLocalStorageEntity {
 
     public static List<String> ALL_COLUMNS
-            = Arrays.asList("id", "schemaName", "status");
+            = Arrays.asList("schemaName", "status");
 
     private static final String TABLE_NAME = "FULL_SCHEMA_STATUS";
 
@@ -64,6 +64,12 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
     @Override
     public List<String> getSelectColumns() {
         return ALL_COLUMNS;
+    }
+
+    @Override
+    public String generateInsert() {
+        String sqlFmt = super.generateInsert();
+        return String.format(sqlFmt, schemaName, status);
     }
 
     @Override

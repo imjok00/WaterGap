@@ -20,7 +20,7 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
             case SCHEMA:
                 SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) dataStruct;
                 StructConvertor structConvertor = ConvertorChooser.chooseConvertor(targetDBType);
-                dataExecutor.execute(schemaStruct.getName(),structConvertor.convert(schemaStruct));
+                dataExecutor.execute(null, structConvertor.convert(schemaStruct));
                 break;
 
         }
@@ -31,6 +31,8 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
         dataExecutor = new RdbmsDataExecutor();
         dataExecutor.init(waterGapContext);
         pollTimeout = waterGapContext.getGlobalConfig().getPollTimeout();
+        structPiping = waterGapContext.getStructPiping();
+        targetDBType = waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType();
     }
 
 }

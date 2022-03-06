@@ -13,7 +13,7 @@ public class DBDialectWrapper extends DBDialect{
 
     public DBDialectWrapper(DatabaseType databaseType) {
         switch (databaseType) {
-            case MYSQL:
+            case MySQL:
                 dbDialect = new MysqlDialect();
         }
     }

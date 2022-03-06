@@ -48,15 +48,15 @@ public class SqliteUtils {
     private static void prepare() {
         try {
             executeSQL(TableCreateSql.CREATE_FULL_EXTRACTOR_STATUS_TABLE);
-            executeSQL(TableCreateSql.CREATE_FULL_EXTRACTOR_STATUS_INDEX);
+            executeSQL(TableCreateSql.CREATE_FULL_SCHEMA_STATUS_TABLE);
         } catch (SQLiteException sqliteException) {
-            // ignore
+            LOG.warn("prepare init sqlite table error", sqliteException);
         } catch (SQLException sqlException) {
             LOG.warn("prepare sqlite error", sqlException);
         }
     }
 
-    public List<AbstractLocalStorageEntity> selectLocalStorageByCondition (String contextId,
+    public List<AbstractLocalStorageEntity> selectLocalStorageByCondition(String contextId,
                                                                            AbstractLocalStorageEntity entity,
                                                                            HashMap<String, String> condition) throws LocalStorageException {
         List<AbstractLocalStorageEntity> results = new ArrayList<>();
@@ -96,6 +96,25 @@ public class SqliteUtils {
                 Statement statement = connection.createStatement();
         ) {
             return statement.execute(sql);
+        }
+    }
+
+    public static Map<String, Object> executeQueryOne(String sql) throws SQLException {
+        try (
+                Connection connection = dataSource.getDataSource().getConnection();
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery(sql);
+        ) {
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            while (resultSet.next()) {
+                Map<String, Object> map = new HashMap<>();
+                for (int i = 0; i < columnCount; i++) {
+                    map.put(metaData.getColumnName(i), resultSet.getObject(i));
+                }
+                return map;
+            }
+            return null;
         }
     }
 }

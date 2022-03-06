@@ -2,6 +2,7 @@ package org.min.watergap.common.datasource.config;
 
 import com.google.gson.JsonObject;
 import org.min.watergap.common.config.DatabaseType;
+import org.min.watergap.common.datasource.config.mysql.MysqlDataSourceConfig;
 
 /**
  * 数据库配置 - 基础的属性
@@ -82,5 +83,15 @@ public abstract class DataSourceConfig {
         this.dbType = DatabaseType.valueOf(prop.get(CONFIG_DATASOURCE_DBTYPE).getAsString());
     }
 
+    public static DataSourceConfig getInstance(JsonObject prop) {
+        DataSourceConfig dataSourceConfig = null;
+        DatabaseType databaseType = DatabaseType.valueOf(prop.get(CONFIG_DATASOURCE_DBTYPE).getAsString());
+        switch (databaseType) {
+            case MySQL:
+                dataSourceConfig = new MysqlDataSourceConfig();
+        }
+        dataSourceConfig.load(prop);
+        return dataSourceConfig;
+    }
 
 }

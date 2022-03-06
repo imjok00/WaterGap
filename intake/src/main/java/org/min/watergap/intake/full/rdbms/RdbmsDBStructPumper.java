@@ -117,7 +117,9 @@ public class RdbmsDBStructPumper extends DBStructPumper {
     private List<PipingData> showAllSchemas() throws SQLException, InterruptedException {
         List<PipingData> schemaStructs = new ArrayList<>();
         executeQuery(pumperDBDialect.SHOW_DATABASES(), (resultSet) -> {
-            schemaStructs.add(new SchemaStructBasePipingData(resultSet.getString(1)));
+            while (resultSet.next()) {
+                schemaStructs.add(new SchemaStructBasePipingData(resultSet.getString(1)));
+            }
         });
         return schemaStructs;
     }

@@ -12,7 +12,7 @@ public class DataSourceFactory {
 
     public static DataSourceWrapper getDataSource(DataSourceConfig config) {
         switch (config.getDatabaseType()) {
-            case MYSQL:
+            case MySQL:
                 return new MysqlDataSource(config);
         }
         return null;
