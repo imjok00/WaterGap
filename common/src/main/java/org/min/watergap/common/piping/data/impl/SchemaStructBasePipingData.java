@@ -30,4 +30,9 @@ public class SchemaStructBasePipingData extends StructBasePipingData {
     public String generateInsertSQL() {
         return new FullSchemaStatus(this.name, AbstractLocalStorageEntity.LocalStorageStatus.INIT).generateInsert();
     }
+
+    @Override
+    public String generateQuerySQL() {
+        return new FullSchemaStatus(this.name).generateQueryOne();
+    }
 }

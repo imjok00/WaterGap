@@ -2,6 +2,7 @@ package org.min.watergap.intake.full.rdbms;
 
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
+import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.data.impl.TableStructBasePipingData;
@@ -103,8 +104,11 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         if (CollectionsUtils.isNotEmpty(tableStructs)) {
             tableStructs.forEach(schemaStruct -> {
                 try {
-                    LocalDataSaveTool.save(schemaStruct);
-                    structPiping.put(schemaStruct);
+                    AbstractLocalStorageEntity.LocalStorageStatus status = LocalDataSaveTool.getLocalDataStatus(schemaStruct);
+                    if (status == null) { // 还没有初始化
+                        LocalDataSaveTool.save(schemaStruct);
+                        structPiping.put(schemaStruct);
+                    }
                 } catch (SQLException e) {
                     throw new WaterGapException("save FullSchemaStatus to local fail", e);
                 } catch (InterruptedException e) {

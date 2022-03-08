@@ -13,7 +13,7 @@ import java.util.List;
 public class FullSchemaStatus extends AbstractLocalStorageEntity {
 
     public static List<String> ALL_COLUMNS
-            = Arrays.asList("schemaName", "status");
+            = Arrays.asList("schemaName", COMMON_STATUS);
 
     private static final String TABLE_NAME = "FULL_SCHEMA_STATUS";
 
@@ -21,15 +21,18 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
 
     private String schemaName;
 
-    private int status;
 
     public FullSchemaStatus() {
 
     }
 
+    public FullSchemaStatus(String schemaName) {
+        this.schemaName = schemaName;
+    }
+
     public FullSchemaStatus(String schemaName, LocalStorageStatus status) {
         this.schemaName = schemaName;
-        this.status = status.getStatus();
+        setStatus(status.getStatus());
     }
 
     public int getId() {
@@ -48,14 +51,6 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
         this.schemaName = schemaName;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
     @Override
     public String getLocalTableName() {
         return TABLE_NAME;
@@ -67,9 +62,13 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
     }
 
     @Override
-    public String generateInsert() {
-        String sqlFmt = super.generateInsert();
-        return String.format(sqlFmt, schemaName, status);
+    public String getSelectOneCondition() {
+        return "schemaName = " + schemaName;
+    }
+
+    @Override
+    public String getInsertValues() {
+        return String.format("%s, %s", schemaName, getStatus());
     }
 
     @Override
