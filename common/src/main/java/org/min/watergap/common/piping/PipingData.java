@@ -2,6 +2,8 @@ package org.min.watergap.common.piping;
 
 import org.min.watergap.common.rdbms.struct.StructType;
 
+import java.util.Map;
+
 /**
  * 基础传输对象
  *
@@ -12,6 +14,8 @@ public interface PipingData {
     String generateQuerySQL();
 
     String generateInsertSQL();
+
+    String generateUpdateSQL(Map<String, Object> objectMap);
 
     StructType getType();
 }

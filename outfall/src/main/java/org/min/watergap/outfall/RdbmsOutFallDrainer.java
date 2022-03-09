@@ -1,6 +1,8 @@
 package org.min.watergap.outfall;
 
 import org.min.watergap.common.context.WaterGapContext;
+import org.min.watergap.common.local.storage.LocalDataSaveTool;
+import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.piping.data.impl.BasePipingData;
 import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
 import org.min.watergap.outfall.convertor.ConvertorChooser;
@@ -16,6 +18,7 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
 
 
     protected void doExecute(BasePipingData dataStruct) {
+
         switch (dataStruct.getType()) {
             case SCHEMA:
                 SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) dataStruct;
@@ -24,6 +27,7 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
                 break;
 
         }
+        LocalDataSaveTool.updateLocalDataStatus(dataStruct, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
     }
 
     @Override

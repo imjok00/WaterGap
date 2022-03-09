@@ -4,6 +4,8 @@ import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.local.storage.entity.FullSchemaStatus;
 import org.min.watergap.common.rdbms.struct.StructType;
 
+import java.util.Map;
+
 /**
  * schema中间对象
  *
@@ -29,6 +31,11 @@ public class SchemaStructBasePipingData extends StructBasePipingData {
     @Override
     public String generateInsertSQL() {
         return new FullSchemaStatus(this.name, AbstractLocalStorageEntity.LocalStorageStatus.INIT).generateInsert();
+    }
+
+    @Override
+    public String generateUpdateSQL(Map<String, Object> objectMap) {
+        return null;
     }
 
     @Override

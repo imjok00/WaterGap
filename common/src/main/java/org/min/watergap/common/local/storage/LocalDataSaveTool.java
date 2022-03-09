@@ -7,6 +7,7 @@ import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.piping.PipingData;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -35,4 +36,9 @@ public class LocalDataSaveTool {
         return AbstractLocalStorageEntity.LocalStorageStatus.valueOf((Integer) obj);
     }
 
+    public static boolean updateLocalDataStatus(PipingData data, int status) throws SQLException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", status);
+        return SqliteUtils.executeSQL(data.generateUpdateSQL(map));
+    }
 }
