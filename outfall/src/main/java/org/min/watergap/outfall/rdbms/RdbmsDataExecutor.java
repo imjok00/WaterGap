@@ -23,7 +23,17 @@ public class RdbmsDataExecutor implements DataExecutor {
         try {
             return executeUpdate(schema, sql);
         } catch (Exception e) {
-            LOG.error("data sql : {} execute error", sql, e);
+            LOG.error("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
+            return 0;
+        }
+    }
+
+    @Override
+    public int execute(String schema, String sql, PipDataAck callback){
+        try {
+            return executeUpdate(schema, sql, callback);
+        } catch (Exception e) {
+            LOG.error("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
             return 0;
         }
     }
@@ -43,6 +53,31 @@ public class RdbmsDataExecutor implements DataExecutor {
         } finally {
             releaseConnect(connection, statement);
         }
+    }
+
+    private int executeUpdate(String schema, String sql, PipDataAck callback) throws SQLException{
+        Statement statement = null;
+        Connection connection = null;
+        int result;
+        try {
+            connection = dataSource.getDataSource().getConnection();
+            connection.setAutoCommit(false);
+            if (schema != null) {
+                connection.setCatalog(schema);
+            }
+            statement = connection.createStatement();
+            result = statement.executeUpdate(sql);
+            callback.callAck();
+            connection.commit();
+        } catch (Exception e) {
+            if (connection != null) {
+                connection.rollback();
+            }
+            throw e;
+        } finally {
+            releaseConnect(connection, statement);
+        }
+        return result;
     }
 
     protected void releaseConnect(Connection connection, Statement statement) throws SQLException {

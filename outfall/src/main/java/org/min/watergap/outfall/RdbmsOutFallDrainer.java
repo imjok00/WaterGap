@@ -23,11 +23,13 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
             case SCHEMA:
                 SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) dataStruct;
                 StructConvertor structConvertor = ConvertorChooser.chooseConvertor(targetDBType);
-                dataExecutor.execute(null, structConvertor.convert(schemaStruct));
+                dataExecutor.execute(null, structConvertor.convert(schemaStruct), () -> {
+                    LocalDataSaveTool.updateLocalDataStatus(dataStruct, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
+                });
                 break;
 
         }
-        LocalDataSaveTool.updateLocalDataStatus(dataStruct, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
+
     }
 
     @Override

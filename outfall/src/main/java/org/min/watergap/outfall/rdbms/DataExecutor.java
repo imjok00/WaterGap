@@ -6,5 +6,5 @@ public interface DataExecutor extends WaterGapLifeCycle {
 
     int execute(String schema, String sql);
 
-    int execute(String schema, String sql, );
+    int execute(String schema, String sql, PipDataAck callback);
 }
