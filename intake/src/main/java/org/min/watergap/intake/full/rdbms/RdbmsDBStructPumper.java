@@ -23,28 +23,46 @@ import java.util.List;
 public class RdbmsDBStructPumper extends DBStructPumper {
     private static final Logger LOG = LoggerFactory.getLogger(RdbmsDBStructPumper.class);
 
+    private static final Long DEFAULT_POLL_DATA_SLEEP_TIME = 50L;
 
 
     @Override
     public void pump() throws WaterGapException {
         // step 1: get all table schema into localstorage
         extractDBSchema();
-
+        // step 2: get ack to extract table
+        ackAndRunNextStage();
     }
 
-    /**
-     * 存储所有的表表名，为了控制内存占用，边取表名边存
-     * @return
-     * @throws SQLException
-     */
-//    protected int saveAllTableNames() throws SQLException {
-//        switch (baseConfig.getScope()) {
-//            case ALL_DATABASE: // 迁移整个数据库
-//                break;
-//        }
-//    }
 
+    protected void ackAndRunNextStage() {
+        for (;;) {
+            try {
+                PipingData pipingData = ackPiping.poll(pollTimeout);
+                if (pipingData != null) {
+                    switch (pipingData.getType()) {
+                        case SCHEMA:
+                            runPumpWork(() -> {
+                                try {
+                                    SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
+                                    showAllTables(schemaData.getName());
+                                } catch (SQLException e) {
+                                    LOG.error("execute pump schema data from source error", e);
+                                } catch (InterruptedException e) {
+                                    LOG.error("execute pump schema interrupt error", e);
+                                }
+                            });
+                            break;
+                    }
+                } else {
+                    Thread.sleep(DEFAULT_POLL_DATA_SLEEP_TIME);
+                }
+            } catch (InterruptedException interruptedException) {
+                LOG.error("poll data from ack piping error", interruptedException);
+            }
 
+        }
+    }
 
     /**
      * 存入所有的schema对象
@@ -86,23 +104,16 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         });
     }
 
-    private void extractTableStruct() throws InterruptedException {
-        PipingData pipingData = structPiping.poll(pollTimeout);
-        if (pipingData == null) {
-            return;
-        }
-
-    }
-
     private void extractDBSchema() {
-        List<PipingData> tableStructs = null;
+        List<PipingData> pipingDataList = null;
         try {
-            tableStructs = getAllSchemaStructs();
+            pipingDataList = getAllSchemaStructs();
+            pipingDataList = filterPipData(pipingDataList);
         } catch (Exception e) {
             throw new WaterGapException("show table struct error", e);
         }
-        if (CollectionsUtils.isNotEmpty(tableStructs)) {
-            tableStructs.forEach(schemaStruct -> {
+        if (CollectionsUtils.isNotEmpty(pipingDataList)) {
+            pipingDataList.forEach(schemaStruct -> {
                 try {
                     AbstractLocalStorageEntity.LocalStorageStatus status = LocalDataSaveTool.getLocalDataStatus(schemaStruct);
                     if (status == null) { // 还没有初始化
@@ -118,6 +129,10 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         }
     }
 
+    protected List<PipingData> filterPipData(List<PipingData> pipingDataList) {
+        return pipingDataList;
+    }
+
     private List<PipingData> showAllSchemas() throws SQLException, InterruptedException {
         List<PipingData> schemaStructs = new ArrayList<>();
         executeQuery(pumperDBDialect.SHOW_DATABASES(), (resultSet) -> {
@@ -127,7 +142,6 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         });
         return schemaStructs;
     }
-
 
     @Override
     public void isStart() {

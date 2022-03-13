@@ -7,21 +7,16 @@ package org.min.watergap.common.local.storage;
  */
 public class TableCreateSql {
 
-    public static final String CREATE_FULL_EXTRACTOR_STATUS_TABLE =
-            "CREATE TABLE IF NOT EXISTS FULL_EXTRACTOR_STATUS (" +
-            "schema VARCHAR(255)," +
-            "tableName VARCHAR(255)," +
-            "currentOffset BIGINT," +
-            "status INT," +
-            "createSql TEXT," +
-            "primaryKeys VARCHAR(512)" +
-            ")"
-            ;
-    public static final String CREATE_FULL_EXTRACTOR_STATUS_INDEX =
-            "CREATE INDEX IDX_FULL_EXTRACTOR_STATUS ON FULL_EXTRACTOR_STATUS(tableName)";
-
     public static final String CREATE_FULL_SCHEMA_STATUS_TABLE =
             "CREATE TABLE IF NOT EXISTS FULL_SCHEMA_STATUS (" +
             "schemaName VARCHAR(255)," +
             "status INT)";
+
+    public static final String CREATE_FULL_TABLE_STATUS_TABLE =
+            "CREATE TABLE IF NOT EXISTS FULL_TABLE_STATUS (" +
+                    "schemaName VARCHAR(255)," +
+                    "tableName VARCHAR(255)," +
+                    "sourceCreateSql TEXT," +
+                    "offset BIGINT," +
+                    "status INT)";
 }

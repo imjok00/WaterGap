@@ -47,7 +47,7 @@ public class SqliteUtils {
 
     private static void prepare() {
         try {
-            executeSQL(TableCreateSql.CREATE_FULL_EXTRACTOR_STATUS_TABLE);
+            executeSQL(TableCreateSql.CREATE_FULL_TABLE_STATUS_TABLE);
             executeSQL(TableCreateSql.CREATE_FULL_SCHEMA_STATUS_TABLE);
         } catch (SQLiteException sqliteException) {
             LOG.warn("prepare init sqlite table error", sqliteException);

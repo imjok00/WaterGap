@@ -35,7 +35,7 @@ public class SchemaStructBasePipingData extends StructBasePipingData {
 
     @Override
     public String generateUpdateSQL(Map<String, Object> objectMap) {
-        return null;
+        return new FullSchemaStatus(this.name).generateUpdate(objectMap);
     }
 
     @Override

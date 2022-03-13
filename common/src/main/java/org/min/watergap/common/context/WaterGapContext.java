@@ -19,11 +19,14 @@ public class WaterGapContext {
 
     private StructPiping structPiping;
 
+    private StructPiping ackPiping;
+
     public WaterGapContext(WaterGapGlobalConfig globalConfig) {
         this.globalConfig = globalConfig;
         inDataSource = DataSourceFactory.getDataSource(globalConfig.getSourceConfig());
         outDataSource = DataSourceFactory.getDataSource(globalConfig.getTargetConfig());
         structPiping = new StructPiping();
+        ackPiping = new StructPiping();
     }
 
     public StartMode getStartMode() {
@@ -60,5 +63,13 @@ public class WaterGapContext {
 
     public void setStructPiping(StructPiping structPiping) {
         this.structPiping = structPiping;
+    }
+
+    public StructPiping getAckPiping() {
+        return ackPiping;
+    }
+
+    public void setAckPiping(StructPiping ackPiping) {
+        this.ackPiping = ackPiping;
     }
 }

@@ -1,5 +1,7 @@
 package org.min.watergap.common.config;
 
+import org.min.watergap.common.context.SystemConstant;
+
 /**
  * 基础公用的配置信息
  *
@@ -13,6 +15,8 @@ public abstract class BaseConfig {
     private ExtractScope scope;
 
     private Long pollTimeout;
+
+    private Integer pumpThreadNum;
 
     public BaseConfig() {
 
@@ -28,5 +32,17 @@ public abstract class BaseConfig {
 
     public Long getPollTimeout() {
         return pollTimeout == null ? DEFAULT_POLL_TIMEOUT : pollTimeout;
+    }
+
+    public void setPollTimeout(Long pollTimeout) {
+        this.pollTimeout = pollTimeout;
+    }
+
+    public void setPumpThreadNum(Integer pumpThreadNum) {
+        this.pumpThreadNum = pumpThreadNum;
+    }
+
+    public Integer getPumpThreadNum() {
+        return pumpThreadNum == null ? SystemConstant.DEFAULT_EXECUTOR_POOL_NUM : pumpThreadNum;
     }
 }

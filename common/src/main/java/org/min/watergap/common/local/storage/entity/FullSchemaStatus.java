@@ -63,7 +63,7 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
 
     @Override
     public String getSelectOneCondition() {
-        return "schemaName = " + schemaName;
+        return "schemaName = '" + schemaName + "'";
     }
 
     @Override

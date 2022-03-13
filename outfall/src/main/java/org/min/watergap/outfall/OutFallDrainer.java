@@ -1,6 +1,7 @@
 package org.min.watergap.outfall;
 
 import org.min.watergap.common.config.DatabaseType;
+import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.piping.StructPiping;
 import org.min.watergap.common.piping.data.impl.BasePipingData;
@@ -18,6 +19,8 @@ public abstract class OutFallDrainer implements Drainer {
     protected Long pollTimeout;
 
     protected DatabaseType targetDBType;
+
+    protected StructPiping ackPiping;
 
     protected abstract void doExecute(BasePipingData dataStruct);
 
@@ -40,6 +43,14 @@ public abstract class OutFallDrainer implements Drainer {
             }
         } catch (InterruptedException e) {
             LOG.error("poll event from fsink fail", e);
+        }
+    }
+
+    protected void ack(BasePipingData pipingData) throws WaterGapException {
+        try {
+            ackPiping.put(pipingData);
+        } catch (InterruptedException e) {
+            throw new WaterGapException("ack data error", e);
         }
     }
 }

@@ -15,7 +15,6 @@ public class StructPiping implements BasePiping {
 
     @Override
     public void put(PipingData struct) throws InterruptedException {
-
         fSink.put(struct);
     }
 
