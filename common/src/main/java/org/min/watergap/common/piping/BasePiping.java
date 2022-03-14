@@ -11,4 +11,5 @@ public interface BasePiping {
 
     PipingData poll(long timeout) throws InterruptedException;
 
+    PipingData take() throws InterruptedException;
 }

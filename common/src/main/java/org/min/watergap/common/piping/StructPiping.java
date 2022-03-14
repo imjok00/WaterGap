@@ -27,4 +27,9 @@ public class StructPiping implements BasePiping {
         }
 
     }
+
+    @Override
+    public PipingData take() throws InterruptedException {
+        return fSink.take();
+    }
 }

@@ -17,6 +17,8 @@ public class WaterGapGlobalConfig extends BaseConfig{
     public static final String CONFIG_ROOT_POLLTIMEOUT = "pollTimeout";
     /** 配置项 - 运行的线程数量 */
     public static final String CONFIG_ROOT_THREADNUM = "threadNum";
+    /** 配置项 - 数据迁移的范围 */
+    public static final String CONFIG_ROOT_SCOPE = "scope";
 
     private DataSourceConfig sourceConfig;
 
@@ -53,8 +55,8 @@ public class WaterGapGlobalConfig extends BaseConfig{
             sourceConfig = DataSourceConfig.getInstance(propJsonObject.getAsJsonObject(DataSourceConfig.CONFIG_ROOT_SOURCE));
             targetConfig = DataSourceConfig.getInstance(propJsonObject.getAsJsonObject(DataSourceConfig.CONFIG_ROOT_TARGET));
             starterMode = StartMode.valueOf(propJsonObject.get(CONFIG_ROOT_MODE).getAsString());
-            setPollTimeout(propJsonObject.get(CONFIG_ROOT_POLLTIMEOUT).getAsLong());
-            setPumpThreadNum(propJsonObject.get(CONFIG_ROOT_THREADNUM).getAsInt());
+            setScope(propJsonObject.get(CONFIG_ROOT_SCOPE));
+            setExecutorWorkNum(propJsonObject.get(CONFIG_ROOT_THREADNUM));
         } catch (FileNotFoundException fileNotFoundException) {
             throw new WaterGapException("file not found : " + jsonPath, fileNotFoundException);
         }

@@ -1,13 +1,17 @@
 package org.min.watergap.outfall;
 
 import org.min.watergap.common.config.DatabaseType;
+import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.piping.StructPiping;
 import org.min.watergap.common.piping.data.impl.BasePipingData;
 import org.min.watergap.outfall.rdbms.DataExecutor;
+import org.min.watergap.outfall.rdbms.RdbmsDataExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 public abstract class OutFallDrainer implements Drainer {
     private static final Logger LOG = LoggerFactory.getLogger(OutFallDrainer.class);
@@ -21,6 +25,8 @@ public abstract class OutFallDrainer implements Drainer {
     protected DatabaseType targetDBType;
 
     protected StructPiping ackPiping;
+
+    protected ThreadPoolExecutor concurrentExecutorWork;
 
     protected abstract void doExecute(BasePipingData dataStruct);
 
@@ -38,8 +44,10 @@ public abstract class OutFallDrainer implements Drainer {
     public void apply() {
         try {
             for (;;) {
-                PipingData pipingData = structPiping.poll(pollTimeout);
-                doExecute((BasePipingData) pipingData);
+                PipingData pipingData = structPiping.take();
+                concurrentExecutorWork.execute(() -> {
+                    doExecute((BasePipingData) pipingData);
+                });
             }
         } catch (InterruptedException e) {
             LOG.error("poll event from fsink fail", e);
@@ -52,5 +60,17 @@ public abstract class OutFallDrainer implements Drainer {
         } catch (InterruptedException e) {
             throw new WaterGapException("ack data error", e);
         }
+    }
+
+
+    @Override
+    public void init(WaterGapContext waterGapContext) {
+        dataExecutor = new RdbmsDataExecutor();
+        dataExecutor.init(waterGapContext);
+        pollTimeout = waterGapContext.getGlobalConfig().getPollTimeout();
+        structPiping = waterGapContext.getStructPiping();
+        targetDBType = waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType();
+        ackPiping = waterGapContext.getAckPiping();
+        concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
     }
 }

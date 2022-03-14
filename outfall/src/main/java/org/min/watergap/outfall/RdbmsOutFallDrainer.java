@@ -1,6 +1,5 @@
 package org.min.watergap.outfall;
 
-import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.piping.data.impl.BasePipingData;
@@ -8,7 +7,6 @@ import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.data.impl.TableStructBasePipingData;
 import org.min.watergap.outfall.convertor.ConvertorChooser;
 import org.min.watergap.outfall.convertor.StructConvertor;
-import org.min.watergap.outfall.rdbms.RdbmsDataExecutor;
 
 /**
  * 关系型数据库执行器
@@ -30,21 +28,15 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
                 break;
             case TABLE:
                 TableStructBasePipingData tableStruct = (TableStructBasePipingData) dataStruct;
-                dataExecutor.execute(tableStruct.)
+                dataExecutor.execute(tableStruct.getSchemaName(), structConvertor.convert(tableStruct), () -> {
+                    LocalDataSaveTool.updateLocalDataStatus(tableStruct, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
+                    ack(tableStruct);
+                });
                 break;
 
         }
 
     }
 
-    @Override
-    public void init(WaterGapContext waterGapContext) {
-        dataExecutor = new RdbmsDataExecutor();
-        dataExecutor.init(waterGapContext);
-        pollTimeout = waterGapContext.getGlobalConfig().getPollTimeout();
-        structPiping = waterGapContext.getStructPiping();
-        targetDBType = waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType();
-        ackPiping = waterGapContext.getAckPiping();
-    }
 
 }

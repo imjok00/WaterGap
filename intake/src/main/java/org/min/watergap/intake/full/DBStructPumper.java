@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.piping.StructPiping;
-import org.min.watergap.common.thread.CustomThreadFactory;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
 import org.min.watergap.intake.dialect.DBDialectWrapper;
@@ -16,7 +15,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 数据结构抽取器
@@ -25,8 +25,6 @@ import java.util.concurrent.*;
  */
 public abstract class DBStructPumper implements Pumper {
     private static final Logger LOG = LogManager.getLogger(DBStructPumper.class);
-
-    private static final int MAX_WORKER_NUM = 10000;
 
     protected volatile int pumpStatus;
 
@@ -40,10 +38,6 @@ public abstract class DBStructPumper implements Pumper {
 
     protected WaterGapContext waterGapContext;
 
-    protected Long pollTimeout;
-
-    protected Integer pumpThreadNum;
-
     protected ThreadPoolExecutor concurrentExecutorWork;
 
     @Override
@@ -52,10 +46,8 @@ public abstract class DBStructPumper implements Pumper {
         this.dataSource = waterGapContext.getInDataSource();
         this.pumperDBDialect = new DBDialectWrapper(waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType());
         structPiping = waterGapContext.getStructPiping();
-        pollTimeout = waterGapContext.getGlobalConfig().getPollTimeout();
         ackPiping = waterGapContext.getAckPiping();
-        pumpThreadNum = waterGapContext.getGlobalConfig().getPumpThreadNum();
-        initConcurrentExecutorWork();
+        concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
     }
 
     @Override
@@ -135,12 +127,6 @@ public abstract class DBStructPumper implements Pumper {
         }
     }
 
-    private void initConcurrentExecutorWork() {
-        ArrayBlockingQueue<Runnable> workerQueue = new ArrayBlockingQueue<>(MAX_WORKER_NUM);
-        CustomThreadFactory customThreadFactory = new CustomThreadFactory("StructPumper");
-        concurrentExecutorWork = new ThreadPoolExecutor(pumpThreadNum, pumpThreadNum,
-                0, TimeUnit.MILLISECONDS, workerQueue,
-                customThreadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
-    }
+
 
 }

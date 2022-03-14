@@ -1,5 +1,7 @@
 package org.min.watergap.common.config;
 
+import com.google.gson.JsonElement;
+
 import java.util.List;
 
 /**
@@ -44,6 +46,10 @@ public class ExtractScope {
         private ScopeType(int type){
             this.type = type;
         }
+    }
+
+    public static ExtractScope getInstance(JsonElement scopeJson) {
+
     }
 
     public class SchemaMap {

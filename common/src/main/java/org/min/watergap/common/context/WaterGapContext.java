@@ -5,11 +5,18 @@ import org.min.watergap.common.config.mode.StartMode;
 import org.min.watergap.common.datasource.DataSourceFactory;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.piping.StructPiping;
+import org.min.watergap.common.thread.CustomThreadFactory;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * context对象
  */
 public class WaterGapContext {
+
+    private static final int MAX_WORKER_NUM = 10000;
 
     private DataSourceWrapper inDataSource;
 
@@ -21,12 +28,23 @@ public class WaterGapContext {
 
     private StructPiping ackPiping;
 
+    private ThreadPoolExecutor concurrentExecutorWork;
+
     public WaterGapContext(WaterGapGlobalConfig globalConfig) {
         this.globalConfig = globalConfig;
         inDataSource = DataSourceFactory.getDataSource(globalConfig.getSourceConfig());
         outDataSource = DataSourceFactory.getDataSource(globalConfig.getTargetConfig());
         structPiping = new StructPiping();
         ackPiping = new StructPiping();
+        initConcurrentExecutorWork(globalConfig.getExecutorWorkNum());
+    }
+
+    private void initConcurrentExecutorWork(int pumpThreadNum) {
+        ArrayBlockingQueue<Runnable> workerQueue = new ArrayBlockingQueue<>(MAX_WORKER_NUM);
+        CustomThreadFactory customThreadFactory = new CustomThreadFactory("StructPumper");
+        concurrentExecutorWork = new ThreadPoolExecutor(pumpThreadNum, pumpThreadNum,
+                0, TimeUnit.MILLISECONDS, workerQueue,
+                customThreadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     public StartMode getStartMode() {
@@ -37,39 +55,23 @@ public class WaterGapContext {
         return inDataSource;
     }
 
-    public void setInDataSource(DataSourceWrapper inDataSource) {
-        this.inDataSource = inDataSource;
-    }
-
     public DataSourceWrapper getOutDataSource() {
         return outDataSource;
-    }
-
-    public void setOutDataSource(DataSourceWrapper outDataSource) {
-        this.outDataSource = outDataSource;
     }
 
     public WaterGapGlobalConfig getGlobalConfig() {
         return globalConfig;
     }
 
-    public void setGlobalConfig(WaterGapGlobalConfig globalConfig) {
-        this.globalConfig = globalConfig;
-    }
-
     public StructPiping getStructPiping() {
         return structPiping;
-    }
-
-    public void setStructPiping(StructPiping structPiping) {
-        this.structPiping = structPiping;
     }
 
     public StructPiping getAckPiping() {
         return ackPiping;
     }
 
-    public void setAckPiping(StructPiping ackPiping) {
-        this.ackPiping = ackPiping;
+    public ThreadPoolExecutor getConcurrentExecutorWork() {
+        return concurrentExecutorWork;
     }
 }

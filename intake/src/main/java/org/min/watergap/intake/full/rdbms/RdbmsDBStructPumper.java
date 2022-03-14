@@ -23,9 +23,6 @@ import java.util.List;
 public class RdbmsDBStructPumper extends DBStructPumper {
     private static final Logger LOG = LoggerFactory.getLogger(RdbmsDBStructPumper.class);
 
-    private static final Long DEFAULT_POLL_DATA_SLEEP_TIME = 50L;
-
-
     @Override
     public void pump() throws WaterGapException {
         // step 1: get all table schema into localstorage
@@ -38,24 +35,20 @@ public class RdbmsDBStructPumper extends DBStructPumper {
     protected void ackAndRunNextStage() {
         for (;;) {
             try {
-                PipingData pipingData = ackPiping.poll(pollTimeout);
-                if (pipingData != null) {
-                    switch (pipingData.getType()) {
-                        case SCHEMA:
-                            runPumpWork(() -> {
-                                try {
-                                    SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
-                                    showAllTables(schemaData.getName());
-                                } catch (SQLException e) {
-                                    LOG.error("execute pump schema data from source error", e);
-                                } catch (InterruptedException e) {
-                                    LOG.error("execute pump schema interrupt error", e);
-                                }
-                            });
-                            break;
-                    }
-                } else {
-                    Thread.sleep(DEFAULT_POLL_DATA_SLEEP_TIME);
+                PipingData pipingData = ackPiping.take();
+                switch (pipingData.getType()) {
+                    case SCHEMA:
+                        runPumpWork(() -> {
+                            try {
+                                SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
+                                showAllTables(schemaData.getName());
+                            } catch (SQLException e) {
+                                LOG.error("execute pump schema data from source error", e);
+                            } catch (InterruptedException e) {
+                                LOG.error("execute pump schema interrupt error", e);
+                            }
+                        });
+                        break;
                 }
             } catch (InterruptedException interruptedException) {
                 LOG.error("poll data from ack piping error", interruptedException);

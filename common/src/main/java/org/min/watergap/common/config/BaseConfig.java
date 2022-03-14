@@ -1,5 +1,6 @@
 package org.min.watergap.common.config;
 
+import com.google.gson.JsonElement;
 import org.min.watergap.common.context.SystemConstant;
 
 /**
@@ -14,35 +15,25 @@ public abstract class BaseConfig {
     // 配置导出的数据级别
     private ExtractScope scope;
 
-    private Long pollTimeout;
-
-    private Integer pumpThreadNum;
+    private Integer executorWorkNum;
 
     public BaseConfig() {
 
     }
 
     public ExtractScope getScope() {
-        return scope == null ? ExtractScope.DEFAULT_EXTRACT_SCOPE : scope;
+        return scope;
     }
 
-    public void setScope(ExtractScope scope) {
-        this.scope = scope;
+    public void setScope(JsonElement scopeJson) {
+        this.scope = scopeJson == null ? ExtractScope.DEFAULT_EXTRACT_SCOPE : ExtractScope.getInstance(scopeJson);
     }
 
-    public Long getPollTimeout() {
-        return pollTimeout == null ? DEFAULT_POLL_TIMEOUT : pollTimeout;
+    public Integer getExecutorWorkNum() {
+        return executorWorkNum;
     }
 
-    public void setPollTimeout(Long pollTimeout) {
-        this.pollTimeout = pollTimeout;
-    }
-
-    public void setPumpThreadNum(Integer pumpThreadNum) {
-        this.pumpThreadNum = pumpThreadNum;
-    }
-
-    public Integer getPumpThreadNum() {
-        return pumpThreadNum == null ? SystemConstant.DEFAULT_EXECUTOR_POOL_NUM : pumpThreadNum;
+    public void setExecutorWorkNum(JsonElement executorWorkNumJson) {
+        this.executorWorkNum = executorWorkNumJson == null ? SystemConstant.DEFAULT_EXECUTOR_POOL_NUM : executorWorkNumJson.getAsInt();
     }
 }
