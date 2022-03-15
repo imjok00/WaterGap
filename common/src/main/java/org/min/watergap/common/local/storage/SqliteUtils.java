@@ -109,7 +109,7 @@ public class SqliteUtils {
             int columnCount = metaData.getColumnCount();
             while (resultSet.next()) {
                 Map<String, Object> map = new HashMap<>();
-                for (int i = 0; i < columnCount; i++) {
+                for (int i = 1; i <= columnCount; i++) {
                     map.put(metaData.getColumnName(i), resultSet.getObject(i));
                 }
                 return map;

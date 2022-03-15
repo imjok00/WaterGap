@@ -24,7 +24,7 @@ public class MysqlDBStructPumper extends RdbmsDBStructPumper {
     protected List<PipingData> filterPipData(List<PipingData> pipingDataList) {
         return pipingDataList.stream().filter(pipingData ->
                 StructType.SCHEMA.equals(pipingData.getType())
-                        && SYSTEM_EXCLUDE_SCHEMAS.contains(((SchemaStructBasePipingData) pipingData).getName())
+                        && !SYSTEM_EXCLUDE_SCHEMAS.contains(((SchemaStructBasePipingData) pipingData).getName())
         ).collect(Collectors.toList());
     }
 

@@ -20,8 +20,6 @@ public abstract class OutFallDrainer implements Drainer {
 
     protected StructPiping structPiping;
 
-    protected Long pollTimeout;
-
     protected DatabaseType targetDBType;
 
     protected StructPiping ackPiping;
@@ -67,7 +65,6 @@ public abstract class OutFallDrainer implements Drainer {
     public void init(WaterGapContext waterGapContext) {
         dataExecutor = new RdbmsDataExecutor();
         dataExecutor.init(waterGapContext);
-        pollTimeout = waterGapContext.getGlobalConfig().getPollTimeout();
         structPiping = waterGapContext.getStructPiping();
         targetDBType = waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType();
         ackPiping = waterGapContext.getAckPiping();

@@ -47,7 +47,7 @@ public class FullTableStatus extends AbstractLocalStorageEntity {
 
     @Override
     public String getInsertValues() {
-        return String.format("%s,%s,%s,%s,%s", schema, name, sourceCreateSql, offset, getOffset());
+        return String.format("'%s','%s','%s','%s','%s'", schema, name, sourceCreateSql, offset, getOffset());
     }
 
     @Override

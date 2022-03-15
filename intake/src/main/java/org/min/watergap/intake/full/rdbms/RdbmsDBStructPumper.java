@@ -26,11 +26,10 @@ public class RdbmsDBStructPumper extends DBStructPumper {
     @Override
     public void pump() throws WaterGapException {
         // step 1: get all table schema into localstorage
-        extractDBSchema();
+        runPumpWork(this::extractDBSchema);
         // step 2: get ack to extract table
-        ackAndRunNextStage();
+        runPumpWork(this::ackAndRunNextStage);
     }
-
 
     protected void ackAndRunNextStage() {
         for (;;) {
@@ -72,7 +71,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                     result.add(new SchemaStructBasePipingData(schemaMap.getSchemaName()));
                 });
                 break;
-            case ALL_DATABASE: // 迁移整个库
+            case ALL: // 迁移整个库
             default:
                 result.addAll(showAllSchemas());
                 break;

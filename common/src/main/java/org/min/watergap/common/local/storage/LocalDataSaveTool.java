@@ -29,6 +29,9 @@ public class LocalDataSaveTool {
 
     public static AbstractLocalStorageEntity.LocalStorageStatus getLocalDataStatus(PipingData data) throws SQLException {
         Map<String, Object> dataMap = SqliteUtils.executeQueryOne(data.generateQuerySQL());
+        if (dataMap == null) {
+            return null;
+        }
         Object obj = dataMap.get(AbstractLocalStorageEntity.COMMON_STATUS);
         if (obj == null) {
             return null;

@@ -68,7 +68,7 @@ public class FullSchemaStatus extends AbstractLocalStorageEntity {
 
     @Override
     public String getInsertValues() {
-        return String.format("%s, %s", schemaName, getStatus());
+        return String.format("'%s', '%s'", schemaName, getStatus());
     }
 
     @Override

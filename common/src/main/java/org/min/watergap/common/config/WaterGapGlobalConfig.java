@@ -19,6 +19,10 @@ public class WaterGapGlobalConfig extends BaseConfig{
     public static final String CONFIG_ROOT_THREADNUM = "threadNum";
     /** 配置项 - 数据迁移的范围 */
     public static final String CONFIG_ROOT_SCOPE = "scope";
+    /** 配置项 - 数据迁移的范围 - 类型ALL(1), PARTIAL_DATABASE(2), PARTIAL_TABLE(3) */
+    public static final String CONFIG_ROOT_SCOPE_TYPE = "scopeType";
+    /** 配置项 - 数据迁移的范围 - 迁移部分的配置 */
+    public static final String CONFIG_ROOT_SCOPE_PARTIAL_TABLE = "partialTable";
 
     private DataSourceConfig sourceConfig;
 

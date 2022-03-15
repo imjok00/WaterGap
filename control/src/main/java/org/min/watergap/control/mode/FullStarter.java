@@ -2,7 +2,7 @@ package org.min.watergap.control.mode;
 
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.intake.Pumper;
-import org.min.watergap.intake.full.rdbms.RdbmsDBStructPumper;
+import org.min.watergap.intake.full.rdbms.extractor.MysqlDBStructPumper;
 import org.min.watergap.outfall.Drainer;
 import org.min.watergap.outfall.RdbmsOutFallDrainer;
 
@@ -22,7 +22,7 @@ public class FullStarter implements Runner {
     public void init(WaterGapContext waterGapContext) {
         switch (waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType()) {
             case MySQL:
-                fullPumper = new RdbmsDBStructPumper();
+                fullPumper = new MysqlDBStructPumper();
                 break;
         }
         switch (waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType()) {
