@@ -1,5 +1,6 @@
 package org.min.watergap.common.piping.data.impl;
 
+import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.local.storage.entity.FullTableStatus;
 import org.min.watergap.common.rdbms.struct.StructType;
 
@@ -54,16 +55,17 @@ public class TableStructBasePipingData extends StructBasePipingData {
 
     @Override
     public String generateQuerySQL() {
-        return new FullTableStatus(schemaName, tableName, sourceCreateSql).generateQueryOne();
+        return new FullTableStatus(schemaName, tableName).generateQueryOne();
     }
 
     @Override
     public String generateInsertSQL() {
-        return new FullTableStatus(schemaName, tableName, sourceCreateSql).generateInsert();
+        return new FullTableStatus(schemaName, tableName, sourceCreateSql,
+                AbstractLocalStorageEntity.LocalStorageStatus.INIT.getStatus()).generateInsert();
     }
 
     @Override
     public String generateUpdateSQL(Map<String, Object> objectMap) {
-        return new FullTableStatus(schemaName, tableName, sourceCreateSql).generateUpdate(objectMap);
+        return new FullTableStatus(schemaName, tableName).generateUpdate(objectMap);
     }
 }

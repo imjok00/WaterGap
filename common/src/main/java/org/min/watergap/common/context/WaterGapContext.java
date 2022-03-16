@@ -5,9 +5,9 @@ import org.min.watergap.common.config.mode.StartMode;
 import org.min.watergap.common.datasource.DataSourceFactory;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.piping.StructPiping;
-import org.min.watergap.common.thread.CustomThreadFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -41,10 +41,9 @@ public class WaterGapContext {
 
     private void initConcurrentExecutorWork(int pumpThreadNum) {
         ArrayBlockingQueue<Runnable> workerQueue = new ArrayBlockingQueue<>(MAX_WORKER_NUM);
-        CustomThreadFactory customThreadFactory = new CustomThreadFactory("StructPumper");
         concurrentExecutorWork = new ThreadPoolExecutor(pumpThreadNum, pumpThreadNum,
-                0, TimeUnit.MILLISECONDS, workerQueue,
-                customThreadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
+                50, TimeUnit.MILLISECONDS, workerQueue,
+                Executors.defaultThreadFactory(), new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     public StartMode getStartMode() {

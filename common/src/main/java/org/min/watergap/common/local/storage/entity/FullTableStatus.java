@@ -13,7 +13,7 @@ import java.util.List;
 public class FullTableStatus extends AbstractLocalStorageEntity {
 
     public static List<String> ALL_COLUMNS
-            = Arrays.asList("schemaName", COMMON_STATUS, "tableName", "sourceCreateSql", "offset");
+            = Arrays.asList("schemaName", "tableName", "sourceCreateSql", "offset", COMMON_STATUS);
 
     private static final String TABLE_NAME = "FULL_TABLE_STATUS";
 
@@ -24,10 +24,17 @@ public class FullTableStatus extends AbstractLocalStorageEntity {
 
     public FullTableStatus() {}
 
-    public FullTableStatus(String schema, String name, String sourceCreateSql) {
+    public FullTableStatus(String schema, String name) {
+        this.schema = schema;
+        this.name = name;
+    }
+
+    public FullTableStatus(String schema, String name, String sourceCreateSql, int status) {
         this.schema = schema;
         this.name = name;
         this.sourceCreateSql = sourceCreateSql;
+        this.setStatus(status);
+        this.offset = 0L;
     }
 
     @Override

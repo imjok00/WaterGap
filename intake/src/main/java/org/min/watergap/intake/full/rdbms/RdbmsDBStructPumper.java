@@ -26,7 +26,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
     @Override
     public void pump() throws WaterGapException {
         // step 1: get all table schema into localstorage
-        runPumpWork(this::extractDBSchema);
+        extractDBSchema();
         // step 2: get ack to extract table
         runPumpWork(this::ackAndRunNextStage);
     }
@@ -48,6 +48,11 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                             }
                         });
                         break;
+                    case TABLE:
+                        runPumpWork(() -> {
+                            TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
+
+                        });
                 }
             } catch (InterruptedException interruptedException) {
                 LOG.error("poll data from ack piping error", interruptedException);
@@ -90,9 +95,20 @@ public class RdbmsDBStructPumper extends DBStructPumper {
      */
     private void showAllTables(String catalog) throws SQLException, InterruptedException {
         executeStreamQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
-            TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
-            LocalDataSaveTool.save(pipingData);
-            structPiping.put(pipingData);
+            while (resultSet.next()) {
+                TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
+                assembleTableStruct(pipingData);
+                LocalDataSaveTool.save(pipingData);
+                structPiping.put(pipingData);
+            }
+        });
+    }
+
+    private void assembleTableStruct(TableStructBasePipingData pipingData) throws SQLException, InterruptedException {
+        executeQuery(pipingData.getSchemaName(), pumperDBDialect.SHOW_CREATE_TABLE(pipingData.getTableName()), (resultSet) -> {
+            while (resultSet.next()) {
+                pipingData.setSourceCreateSql(resultSet.getString(2));
+            }
         });
     }
 
