@@ -4,6 +4,7 @@ import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.local.storage.entity.FullTableStatus;
 import org.min.watergap.common.rdbms.struct.StructType;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +19,8 @@ public class TableStructBasePipingData extends StructBasePipingData {
     private String tableName;
 
     private String sourceCreateSql;
+
+    private List<Column> columns;
 
     public TableStructBasePipingData(String schemaName, String tableName) {
         this.schemaName = schemaName;
@@ -48,6 +51,18 @@ public class TableStructBasePipingData extends StructBasePipingData {
         this.sourceCreateSql = sourceCreateSql;
     }
 
+    public List<Column> getColumns() {
+        return columns;
+    }
+
+    public void setColumns(List<Column> columns) {
+        this.columns = columns;
+    }
+
+    public void addColumn(Column column) {
+        this.columns.add(column);
+    }
+
     @Override
     public StructType getType() {
         return StructType.TABLE;
@@ -67,5 +82,32 @@ public class TableStructBasePipingData extends StructBasePipingData {
     @Override
     public String generateUpdateSQL(Map<String, Object> objectMap) {
         return new FullTableStatus(schemaName, tableName).generateUpdate(objectMap);
+    }
+
+
+    public static class Column {
+        private String name;
+        private int type;
+
+        public Column(String name, int type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public void setType(int type) {
+            this.type = type;
+        }
     }
 }

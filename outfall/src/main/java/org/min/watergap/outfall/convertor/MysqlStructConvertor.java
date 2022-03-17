@@ -2,6 +2,7 @@ package org.min.watergap.outfall.convertor;
 
 import org.min.watergap.common.piping.data.impl.BasePipingData;
 import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
+import org.min.watergap.common.piping.data.impl.TableStructBasePipingData;
 
 public class MysqlStructConvertor implements StructConvertor {
 
@@ -14,7 +15,8 @@ public class MysqlStructConvertor implements StructConvertor {
                 SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) pipingData;
                 return String.format(CREATE_DATABASE_TEMPLATE, schemaStruct.getName());
             case TABLE:
-                SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) pipingData;
+                TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
+
                 break;
         }
         return null;

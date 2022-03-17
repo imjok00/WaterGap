@@ -11,6 +11,9 @@ import org.min.watergap.intake.full.DBStructPumper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,12 +107,27 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         });
     }
 
-    private void assembleTableStruct(TableStructBasePipingData pipingData) throws SQLException, InterruptedException {
-        executeQuery(pipingData.getSchemaName(), pumperDBDialect.SHOW_CREATE_TABLE(pipingData.getTableName()), (resultSet) -> {
-            while (resultSet.next()) {
-                pipingData.setSourceCreateSql(resultSet.getString(2));
+    protected void assembleTableStruct(TableStructBasePipingData pipingData) throws SQLException, InterruptedException {
+//        executeQuery(pipingData.getSchemaName(), pumperDBDialect.SHOW_CREATE_TABLE(pipingData.getTableName()), (resultSet) -> {
+//            while (resultSet.next()) {
+//                pipingData.setSourceCreateSql(resultSet.getString(2));
+//            }
+//        });
+        pipingData.setColumns(new ArrayList<>());
+        try(
+                Connection connection = dataSource.getDataSource().getConnection()
+        ) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet rs = metaData.getColumns(pipingData.getSchemaName(), pipingData.getSchemaName(),
+                    pipingData.getTableName(), null);
+            while (rs.next()) {
+                String name = rs.getString(3);
+                String columnName = rs.getString(4);
+                int columnType = rs.getInt(5);
+                String typeName = rs.getString(6);
+                pipingData.addColumn(new TableStructBasePipingData.Column(columnName, columnType));
             }
-        });
+        }
     }
 
     private void extractDBSchema() {
