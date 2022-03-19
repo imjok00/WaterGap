@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @Create by metaX.h on 2022/2/23 23:29
  */
-public class SchemaStructBasePipingData extends StructBasePipingData {
+public class SchemaStructBasePipingData extends RdbmsStructBasePipingData {
 
     private String name;
 

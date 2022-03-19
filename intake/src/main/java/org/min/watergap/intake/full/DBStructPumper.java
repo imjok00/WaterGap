@@ -40,6 +40,8 @@ public abstract class DBStructPumper implements Pumper {
 
     protected ThreadPoolExecutor concurrentExecutorWork;
 
+    protected boolean isIdentical;
+
     @Override
     public void init(WaterGapContext waterGapContext) {
         this.waterGapContext = waterGapContext;
@@ -48,6 +50,7 @@ public abstract class DBStructPumper implements Pumper {
         structPiping = waterGapContext.getStructPiping();
         ackPiping = waterGapContext.getAckPiping();
         concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
+        isIdentical = waterGapContext.isIdentical();
     }
 
     @Override

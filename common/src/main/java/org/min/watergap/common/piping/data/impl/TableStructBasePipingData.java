@@ -12,43 +12,15 @@ import java.util.Map;
  *
  * @Create by metaX.h on 2022/2/26 9:03
  */
-public class TableStructBasePipingData extends StructBasePipingData {
-
-    private String schemaName;
-
-    private String tableName;
-
-    private String sourceCreateSql;
+public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     private List<Column> columns;
 
+    private IndexInfo indexInfo;
+
     public TableStructBasePipingData(String schemaName, String tableName) {
-        this.schemaName = schemaName;
-        this.tableName = tableName;
-    }
-
-    public String getSchemaName() {
-        return schemaName;
-    }
-
-    public void setSchemaName(String schemaName) {
-        this.schemaName = schemaName;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public String getSourceCreateSql() {
-        return sourceCreateSql;
-    }
-
-    public void setSourceCreateSql(String sourceCreateSql) {
-        this.sourceCreateSql = sourceCreateSql;
+        setSchemaName(schemaName);
+        setTableName(tableName);
     }
 
     public List<Column> getColumns() {
@@ -57,6 +29,14 @@ public class TableStructBasePipingData extends StructBasePipingData {
 
     public void setColumns(List<Column> columns) {
         this.columns = columns;
+    }
+
+    public IndexInfo getIndexInfo() {
+        return indexInfo;
+    }
+
+    public void setIndexInfo(IndexInfo indexInfo) {
+        this.indexInfo = indexInfo;
     }
 
     public void addColumn(Column column) {
@@ -70,44 +50,98 @@ public class TableStructBasePipingData extends StructBasePipingData {
 
     @Override
     public String generateQuerySQL() {
-        return new FullTableStatus(schemaName, tableName).generateQueryOne();
+        return new FullTableStatus(getSchemaName(), getTableName()).generateQueryOne();
     }
 
     @Override
     public String generateInsertSQL() {
-        return new FullTableStatus(schemaName, tableName, sourceCreateSql,
+        return new FullTableStatus(getSchemaName(), getTableName(), getSourceCreateSql(),
                 AbstractLocalStorageEntity.LocalStorageStatus.INIT.getStatus()).generateInsert();
     }
 
     @Override
     public String generateUpdateSQL(Map<String, Object> objectMap) {
-        return new FullTableStatus(schemaName, tableName).generateUpdate(objectMap);
+        return new FullTableStatus(getSchemaName(), getTableName()).generateUpdate(objectMap);
     }
-
 
     public static class Column {
-        private String name;
-        private int type;
+        private String columnName;
+        private int columnType;
+        private String typeName;
 
-        public Column(String name, int type) {
-            this.name = name;
-            this.type = type;
+        public Column(String columnName, int columnType, String typeName) {
+            this.columnName = columnName;
+            this.columnType = columnType;
+            this.typeName = typeName;
         }
 
-        public String getName() {
-            return name;
+        public String getColumnName() {
+            return columnName;
         }
 
-        public void setName(String name) {
-            this.name = name;
+        public void setColumnName(String columnName) {
+            this.columnName = columnName;
         }
 
-        public int getType() {
-            return type;
+        public int getColumnType() {
+            return columnType;
         }
 
-        public void setType(int type) {
-            this.type = type;
+        public void setColumnType(int columnType) {
+            this.columnType = columnType;
+        }
+
+        public String getTypeName() {
+            return typeName;
+        }
+
+        public void setTypeName(String typeName) {
+            this.typeName = typeName;
         }
     }
+
+
+    public static class IndexInfo {
+
+        private List<TableStructBasePipingData.Column> primaryKeys;
+
+        private Map<String, List<TableStructBasePipingData.Column>> normalKeys;
+
+        private Map<String, List<TableStructBasePipingData.Column>> uniqueKeys;
+
+        private Map<String, List<TableStructBasePipingData.Column>> foreignKes;
+
+        public List<Column> getPrimaryKeys() {
+            return primaryKeys;
+        }
+
+        public void setPrimaryKeys(List<Column> primaryKeys) {
+            this.primaryKeys = primaryKeys;
+        }
+
+        public Map<String, List<Column>> getNormalKeys() {
+            return normalKeys;
+        }
+
+        public void setNormalKeys(Map<String, List<Column>> normalKeys) {
+            this.normalKeys = normalKeys;
+        }
+
+        public Map<String, List<Column>> getUniqueKeys() {
+            return uniqueKeys;
+        }
+
+        public void setUniqueKeys(Map<String, List<Column>> uniqueKeys) {
+            this.uniqueKeys = uniqueKeys;
+        }
+
+        public Map<String, List<Column>> getForeignKes() {
+            return foreignKes;
+        }
+
+        public void setForeignKes(Map<String, List<Column>> foreignKes) {
+            this.foreignKes = foreignKes;
+        }
+    }
+
 }

@@ -11,10 +11,7 @@ import org.min.watergap.intake.full.DBStructPumper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +36,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
             try {
                 PipingData pipingData = ackPiping.take();
                 switch (pipingData.getType()) {
-                    case SCHEMA:
+                    case SCHEMA:/* 数据库建立好之后，开始迁移表结构 */
                         runPumpWork(() -> {
                             try {
                                 SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
@@ -51,7 +48,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                             }
                         });
                         break;
-                    case TABLE:
+                    case TABLE: /* 表结构迁移完成之后开始迁移数据 */
                         runPumpWork(() -> {
                             TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
 
@@ -100,6 +97,7 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         executeStreamQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
             while (resultSet.next()) {
                 TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
+                pipingData.setIdentical(isIdentical);
                 assembleTableStruct(pipingData);
                 LocalDataSaveTool.save(pipingData);
                 structPiping.put(pipingData);
@@ -108,11 +106,11 @@ public class RdbmsDBStructPumper extends DBStructPumper {
     }
 
     protected void assembleTableStruct(TableStructBasePipingData pipingData) throws SQLException, InterruptedException {
-//        executeQuery(pipingData.getSchemaName(), pumperDBDialect.SHOW_CREATE_TABLE(pipingData.getTableName()), (resultSet) -> {
-//            while (resultSet.next()) {
-//                pipingData.setSourceCreateSql(resultSet.getString(2));
-//            }
-//        });
+        executeQuery(pipingData.getSchemaName(), pumperDBDialect.SHOW_CREATE_TABLE(pipingData.getTableName()), (resultSet) -> {
+            while (resultSet.next()) {
+                pipingData.setSourceCreateSql(resultSet.getString(2));
+            }
+        });
         pipingData.setColumns(new ArrayList<>());
         try(
                 Connection connection = dataSource.getDataSource().getConnection()
@@ -123,9 +121,11 @@ public class RdbmsDBStructPumper extends DBStructPumper {
             while (rs.next()) {
                 String name = rs.getString(3);
                 String columnName = rs.getString(4);
+                // SQL type from java.sql.Types
                 int columnType = rs.getInt(5);
                 String typeName = rs.getString(6);
-                pipingData.addColumn(new TableStructBasePipingData.Column(columnName, columnType));
+
+                pipingData.addColumn(new TableStructBasePipingData.Column(columnName, columnType, typeName));
             }
         }
     }

@@ -73,4 +73,9 @@ public class WaterGapContext {
     public ThreadPoolExecutor getConcurrentExecutorWork() {
         return concurrentExecutorWork;
     }
+
+    public boolean isIdentical() {
+        return globalConfig.getSourceConfig().getDatabaseType()
+                .equals(globalConfig.getTargetConfig().getDatabaseType());
+    }
 }
