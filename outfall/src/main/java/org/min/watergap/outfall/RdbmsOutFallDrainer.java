@@ -2,9 +2,9 @@ package org.min.watergap.outfall;
 
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
-import org.min.watergap.common.piping.data.impl.BasePipingData;
-import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
-import org.min.watergap.common.piping.data.impl.TableStructBasePipingData;
+import org.min.watergap.common.piping.struct.impl.BasePipingData;
+import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
+import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.outfall.convertor.ConvertorChooser;
 import org.min.watergap.outfall.convertor.StructConvertor;
 

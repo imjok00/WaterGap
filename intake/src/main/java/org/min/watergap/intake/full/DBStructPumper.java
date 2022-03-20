@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.datasource.DataSourceWrapper;
-import org.min.watergap.common.piping.StructPiping;
+import org.min.watergap.common.piping.WaterGapPiping;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
 import org.min.watergap.intake.dialect.DBDialectWrapper;
@@ -32,9 +32,11 @@ public abstract class DBStructPumper implements Pumper {
 
     protected DBDialect pumperDBDialect;
 
-    protected StructPiping structPiping;
+    protected WaterGapPiping structPiping;
 
-    protected StructPiping ackPiping;
+    protected WaterGapPiping dataPiping;
+
+    protected WaterGapPiping ackPiping;
 
     protected WaterGapContext waterGapContext;
 
@@ -49,6 +51,7 @@ public abstract class DBStructPumper implements Pumper {
         this.pumperDBDialect = new DBDialectWrapper(waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType());
         structPiping = waterGapContext.getStructPiping();
         ackPiping = waterGapContext.getAckPiping();
+        this.dataPiping = waterGapContext.getDataPiping();
         concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
         isIdentical = waterGapContext.isIdentical();
     }

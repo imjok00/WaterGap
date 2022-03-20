@@ -4,14 +4,18 @@ import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.piping.PipingData;
-import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
-import org.min.watergap.common.piping.data.impl.TableStructBasePipingData;
+import org.min.watergap.common.piping.data.impl.TableDataBasePipingData;
+import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
+import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.intake.full.DBStructPumper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +55,11 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                     case TABLE: /* 表结构迁移完成之后开始迁移数据 */
                         runPumpWork(() -> {
                             TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
-
+                            try {
+                                startDataPumper(tableStruct);
+                            } catch (InterruptedException e) {
+                                LOG.error("start pump data interrupt error", e);
+                            }
                         });
                 }
             } catch (InterruptedException interruptedException) {
@@ -59,6 +67,10 @@ public class RdbmsDBStructPumper extends DBStructPumper {
             }
 
         }
+    }
+
+    private void startDataPumper(TableStructBasePipingData tableStruct) throws InterruptedException {
+        dataPiping.put(new TableDataBasePipingData(tableStruct));
     }
 
     /**
@@ -173,4 +185,5 @@ public class RdbmsDBStructPumper extends DBStructPumper {
     public void isStart() {
 
     }
+
 }

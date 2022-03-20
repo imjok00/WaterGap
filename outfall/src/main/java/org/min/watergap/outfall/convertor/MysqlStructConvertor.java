@@ -1,8 +1,8 @@
 package org.min.watergap.outfall.convertor;
 
-import org.min.watergap.common.piping.data.impl.BasePipingData;
-import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
-import org.min.watergap.common.piping.data.impl.TableStructBasePipingData;
+import org.min.watergap.common.piping.struct.impl.BasePipingData;
+import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
+import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 
 public class MysqlStructConvertor implements StructConvertor {
 

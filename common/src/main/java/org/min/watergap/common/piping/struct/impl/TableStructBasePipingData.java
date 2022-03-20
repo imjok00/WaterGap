@@ -1,4 +1,4 @@
-package org.min.watergap.common.piping.data.impl;
+package org.min.watergap.common.piping.struct.impl;
 
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.local.storage.entity.FullTableStatus;

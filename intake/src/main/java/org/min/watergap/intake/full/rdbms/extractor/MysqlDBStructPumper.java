@@ -3,7 +3,7 @@ package org.min.watergap.intake.full.rdbms.extractor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.piping.PipingData;
-import org.min.watergap.common.piping.data.impl.SchemaStructBasePipingData;
+import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.rdbms.struct.StructType;
 import org.min.watergap.intake.full.rdbms.RdbmsDBStructPumper;
 

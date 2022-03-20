@@ -1,7 +1,7 @@
 package org.min.watergap.intake.full.rdbms.result;
 
 import org.min.watergap.common.annotation.ResultSetMapping;
-import org.min.watergap.common.piping.data.impl.BasePipingData;
+import org.min.watergap.common.piping.struct.impl.BasePipingData;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;

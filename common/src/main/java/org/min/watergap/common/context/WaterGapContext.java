@@ -4,7 +4,7 @@ import org.min.watergap.common.config.WaterGapGlobalConfig;
 import org.min.watergap.common.config.mode.StartMode;
 import org.min.watergap.common.datasource.DataSourceFactory;
 import org.min.watergap.common.datasource.DataSourceWrapper;
-import org.min.watergap.common.piping.StructPiping;
+import org.min.watergap.common.piping.WaterGapPiping;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
@@ -24,9 +24,11 @@ public class WaterGapContext {
 
     private WaterGapGlobalConfig globalConfig;
 
-    private StructPiping structPiping;
+    private WaterGapPiping structPiping;
 
-    private StructPiping ackPiping;
+    private WaterGapPiping ackPiping;
+
+    private WaterGapPiping dataPiping;
 
     private ThreadPoolExecutor concurrentExecutorWork;
 
@@ -34,8 +36,9 @@ public class WaterGapContext {
         this.globalConfig = globalConfig;
         inDataSource = DataSourceFactory.getDataSource(globalConfig.getSourceConfig());
         outDataSource = DataSourceFactory.getDataSource(globalConfig.getTargetConfig());
-        structPiping = new StructPiping();
-        ackPiping = new StructPiping();
+        structPiping = new WaterGapPiping();
+        ackPiping = new WaterGapPiping();
+        dataPiping = new WaterGapPiping();
         initConcurrentExecutorWork(globalConfig.getExecutorWorkNum());
     }
 
@@ -62,16 +65,20 @@ public class WaterGapContext {
         return globalConfig;
     }
 
-    public StructPiping getStructPiping() {
+    public WaterGapPiping getStructPiping() {
         return structPiping;
     }
 
-    public StructPiping getAckPiping() {
+    public WaterGapPiping getAckPiping() {
         return ackPiping;
     }
 
     public ThreadPoolExecutor getConcurrentExecutorWork() {
         return concurrentExecutorWork;
+    }
+
+    public WaterGapPiping getDataPiping() {
+        return dataPiping;
     }
 
     public boolean isIdentical() {

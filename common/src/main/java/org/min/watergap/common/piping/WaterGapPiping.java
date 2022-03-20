@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @Create by metaX.h on 2021/11/28 22:18
  */
-public class StructPiping implements BasePiping {
+public class WaterGapPiping implements BasePiping {
 
     private final BlockingQueue<PipingData> fSink = new LinkedBlockingQueue<>();
 
