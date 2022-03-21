@@ -7,8 +7,8 @@ package org.min.watergap.common.position;
  */
 public interface Position {
 
-    String getPosition();
+    String getVal(String key);
 
-    void setPosition(String position);
+    void parse(String position);
 
 }
