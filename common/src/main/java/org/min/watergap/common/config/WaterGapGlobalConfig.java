@@ -23,6 +23,8 @@ public class WaterGapGlobalConfig extends BaseConfig{
     public static final String CONFIG_ROOT_SCOPE_TYPE = "scopeType";
     /** 配置项 - 数据迁移的范围 - 迁移部分的配置 */
     public static final String CONFIG_ROOT_SCOPE_PARTIAL_TABLE = "partialTable";
+    /** 配置项 - select limit */
+    public static final String CONFIG_ROOT_SQL_LIMIT = "sqlLimit";
 
     private DataSourceConfig sourceConfig;
 
@@ -61,6 +63,7 @@ public class WaterGapGlobalConfig extends BaseConfig{
             starterMode = StartMode.valueOf(propJsonObject.get(CONFIG_ROOT_MODE).getAsString());
             setScope(propJsonObject.get(CONFIG_ROOT_SCOPE));
             setExecutorWorkNum(propJsonObject.get(CONFIG_ROOT_THREADNUM));
+            setSqlSelectLimit(propJsonObject.get(CONFIG_ROOT_SQL_LIMIT));
         } catch (FileNotFoundException fileNotFoundException) {
             throw new WaterGapException("file not found : " + jsonPath, fileNotFoundException);
         }

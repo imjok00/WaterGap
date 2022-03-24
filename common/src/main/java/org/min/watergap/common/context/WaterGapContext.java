@@ -85,4 +85,8 @@ public class WaterGapContext {
         return globalConfig.getSourceConfig().getDatabaseType()
                 .equals(globalConfig.getTargetConfig().getDatabaseType());
     }
+
+    public Long getSqlSelectLimit() {
+        return globalConfig.getSqlSelectLimit();
+    }
 }

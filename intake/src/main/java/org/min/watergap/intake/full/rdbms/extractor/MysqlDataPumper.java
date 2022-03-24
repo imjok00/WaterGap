@@ -27,6 +27,7 @@ public class MysqlDataPumper extends RdbmsDataPumper {
             selectSQL.append(" WHERE ");
             selectSQL.append(generateSearchKeys(tableData.getColumns(), tableData.getPosition()));
         }
+        selectSQL.append(" limit ").append(sqlSelectLimit);
         return selectSQL.toString();
     }
 

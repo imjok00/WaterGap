@@ -17,6 +17,8 @@ public abstract class BaseConfig {
 
     private Integer executorWorkNum;
 
+    private Long sqlSelectLimit;
+
     public BaseConfig() {
 
     }
@@ -35,5 +37,13 @@ public abstract class BaseConfig {
 
     public void setExecutorWorkNum(JsonElement executorWorkNumJson) {
         this.executorWorkNum = executorWorkNumJson == null ? SystemConstant.DEFAULT_EXECUTOR_POOL_NUM : executorWorkNumJson.getAsInt();
+    }
+
+    public Long getSqlSelectLimit() {
+        return sqlSelectLimit;
+    }
+
+    public void setSqlSelectLimit(JsonElement sqlSelectLimit) {
+        this.sqlSelectLimit = sqlSelectLimit == null ? SystemConstant.DEFAULT_SQL_SELECT_LIMIT : sqlSelectLimit.getAsLong();
     }
 }

@@ -44,6 +44,9 @@ public abstract class DBStructPumper implements Pumper {
 
     protected boolean isIdentical;
 
+    protected Long sqlSelectLimit;
+
+
     @Override
     public void init(WaterGapContext waterGapContext) {
         this.waterGapContext = waterGapContext;
@@ -54,6 +57,7 @@ public abstract class DBStructPumper implements Pumper {
         this.dataPiping = waterGapContext.getDataPiping();
         concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
         isIdentical = waterGapContext.isIdentical();
+        sqlSelectLimit = waterGapContext.getSqlSelectLimit();
     }
 
     @Override
