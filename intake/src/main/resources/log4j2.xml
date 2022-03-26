@@ -27,11 +27,8 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="all">
+        <Root level="info">
             <AppenderRef ref="STDOUT"/>
-            <AppenderRef ref="infoRollingFile"/>
-            <AppenderRef ref="warnRollingFile"/>
-            <AppenderRef ref="errorRollingFile"/>
         </Root>
     </Loggers>
 </Configuration>

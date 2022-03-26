@@ -1,10 +1,14 @@
 package org.min.watergap.common.piping.data.impl;
 
+import org.min.watergap.common.local.storage.entity.FullDataPosition;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.position.Position;
 import org.min.watergap.common.position.full.RdbmsFullPosition;
+import org.min.watergap.common.rdbms.struct.StructType;
+import org.min.watergap.common.utils.CollectionsUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,11 +17,13 @@ import java.util.Map;
  *
  * @Create by metaX.h on 2022/3/20 20:53
  */
-public class TableDataBasePipingData extends TableStructBasePipingData {
+public class FullTableDataBasePipingData extends TableStructBasePipingData {
 
     private Position position;
 
-    public TableDataBasePipingData(TableStructBasePipingData tableStructBasePipingData) {
+    private ColumnValContain contain;
+
+    public FullTableDataBasePipingData(TableStructBasePipingData tableStructBasePipingData) {
         super(tableStructBasePipingData.getSchemaName(), tableStructBasePipingData.getTableName());
         setSourceCreateSql(tableStructBasePipingData.getSourceCreateSql());
         setColumns(tableStructBasePipingData.getColumns());
@@ -27,7 +33,7 @@ public class TableDataBasePipingData extends TableStructBasePipingData {
         
     }
 
-    public TableDataBasePipingData(String schemaName, String tableName) {
+    public FullTableDataBasePipingData(String schemaName, String tableName) {
         super(schemaName, tableName);
     }
 
@@ -37,6 +43,29 @@ public class TableDataBasePipingData extends TableStructBasePipingData {
 
     public void setPosition(Position position) {
         this.position = position;
+    }
+
+    public void setContain(ColumnValContain contain) {
+        this.contain = contain;
+
+        List<Column> primaryKeys = getIndexInfo().getPrimaryKeys();
+        if (CollectionsUtils.isEmpty(primaryKeys)) {
+            return;
+        }
+        if (CollectionsUtils.isEmpty(contain.getValMapList())) {
+            return;
+        }
+        Map<String, Object> oneColumnMap = contain.getValMapList().get(contain.getValMapList().size() - 1);
+        Map<String, String> keyValMap = new HashMap<>();
+        primaryKeys.forEach(column -> {
+            keyValMap.put(column.getColumnName(), String.valueOf(oneColumnMap.get(keyValMap)));
+        });
+        Position position = new RdbmsFullPosition(keyValMap);
+        setPosition(position);
+    }
+
+    public ColumnValContain getContain() {
+        return contain;
     }
 
     public static class ColumnValContain {
@@ -67,5 +96,15 @@ public class TableDataBasePipingData extends TableStructBasePipingData {
         public void setColumns(List<Column> columns) {
             this.columns = columns;
         }
+    }
+
+    @Override
+    public StructType getType() {
+        return StructType.FULL_DATA;
+    }
+
+    @Override
+    public String generateUpdateSQL(Map<String, Object> objectMap) {
+        return new FullDataPosition(getSchemaName(), getTableName()).generateUpdate(objectMap);
     }
 }

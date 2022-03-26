@@ -1,7 +1,8 @@
 package org.min.watergap.intake.full.rdbms;
 
 import org.min.watergap.common.exception.WaterGapException;
-import org.min.watergap.common.piping.data.impl.TableDataBasePipingData;
+import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
+import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.position.Position;
 import org.min.watergap.intake.full.DBDataPumper;
 
@@ -31,17 +32,20 @@ public class RdbmsDataPumper extends DBDataPumper {
         runPumpWork(() -> {
             for(;;) {
                 try {
-                    TableDataBasePipingData tableData = (TableDataBasePipingData) dataPiping.take();
+                    FullTableDataBasePipingData tableData = (FullTableDataBasePipingData) dataPiping.take();
                     String selectSql = generateSelectSQL(tableData);
                     executeStreamQuery(tableData.getSchemaName(), selectSql, (resultSet) -> {
-                        TableDataBasePipingData.ColumnValContain contain
-                                = new TableDataBasePipingData.ColumnValContain(tableData.getColumns());
-                        Map<String, Object> map = new HashMap<>();
+                        FullTableDataBasePipingData.ColumnValContain contain
+                                = new FullTableDataBasePipingData.ColumnValContain(tableData.getColumns());
                         while (resultSet.next()) {
-                            tableData.getColumns().forEach(column -> {
-                                map.put(column.getColumnName(), )
-                            });
+                            Map<String, Object> map = new HashMap<>();
+                            for (TableStructBasePipingData.Column column : tableData.getColumns()) {
+                                map.put(column.getColumnName(), convertSqlType(column, resultSet));
+                            }
+                            contain.addVal(map);
                         }
+                        tableData.setContain(contain);
+                        dataPiping.put(tableData);
                     });
 
                 } catch (InterruptedException | SQLException e) {
@@ -54,7 +58,7 @@ public class RdbmsDataPumper extends DBDataPumper {
 
 
     @Override
-    protected String generateSelectSQL(TableDataBasePipingData tableData) {
+    protected String generateSelectSQL(FullTableDataBasePipingData tableData) {
         return null;
     }
 }

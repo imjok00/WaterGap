@@ -34,7 +34,7 @@ public abstract class DBStructPumper implements Pumper {
 
     protected WaterGapPiping structPiping;
 
-    protected WaterGapPiping dataPiping;
+    //protected WaterGapPiping dataPiping;
 
     protected WaterGapPiping ackPiping;
 
@@ -54,7 +54,7 @@ public abstract class DBStructPumper implements Pumper {
         this.pumperDBDialect = new DBDialectWrapper(waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType());
         structPiping = waterGapContext.getStructPiping();
         ackPiping = waterGapContext.getAckPiping();
-        this.dataPiping = waterGapContext.getDataPiping();
+        //this.dataPiping = waterGapContext.getDataPiping();
         concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
         isIdentical = waterGapContext.isIdentical();
         sqlSelectLimit = waterGapContext.getSqlSelectLimit();

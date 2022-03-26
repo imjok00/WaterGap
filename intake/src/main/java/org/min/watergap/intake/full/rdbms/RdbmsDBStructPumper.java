@@ -4,7 +4,7 @@ import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.piping.PipingData;
-import org.min.watergap.common.piping.data.impl.TableDataBasePipingData;
+import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.utils.CollectionsUtils;
@@ -61,6 +61,17 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                                 LOG.error("start pump data interrupt error", e);
                             }
                         });
+                        break;
+                    case FULL_DATA: /* 数据更新以后回调,进入下一part提取 */
+                        runPumpWork(() -> {
+                            FullTableDataBasePipingData tableDataBasePipingData = (FullTableDataBasePipingData) pipingData;
+                            try {
+                                startNextDataPumper(tableDataBasePipingData);
+                            } catch (InterruptedException e) {
+                                LOG.error("start pump data interrupt error", e);
+                            }
+                        });
+                        break;
                 }
             } catch (InterruptedException interruptedException) {
                 LOG.error("poll data from ack piping error", interruptedException);
@@ -70,7 +81,11 @@ public class RdbmsDBStructPumper extends DBStructPumper {
     }
 
     private void startDataPumper(TableStructBasePipingData tableStruct) throws InterruptedException {
-        dataPiping.put(new TableDataBasePipingData(tableStruct));
+        structPiping.put(new FullTableDataBasePipingData(tableStruct));
+    }
+
+    private void startNextDataPumper(FullTableDataBasePipingData data) throws InterruptedException {
+        structPiping.put(data);
     }
 
     /**

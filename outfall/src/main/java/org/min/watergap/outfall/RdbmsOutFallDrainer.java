@@ -2,6 +2,7 @@ package org.min.watergap.outfall;
 
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
+import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.common.piping.struct.impl.BasePipingData;
 import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
@@ -16,21 +17,28 @@ import org.min.watergap.outfall.convertor.StructConvertor;
 public class RdbmsOutFallDrainer extends OutFallDrainer {
 
 
-    protected void doExecute(BasePipingData dataStruct) {
+    protected void doExecute(BasePipingData data) {
         StructConvertor structConvertor = ConvertorChooser.chooseConvertor(targetDBType);;
-        switch (dataStruct.getType()) {
+        switch (data.getType()) {
             case SCHEMA:
-                SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) dataStruct;
+                SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) data;
                 dataExecutor.execute(null, structConvertor.convert(schemaStruct), () -> {
-                    LocalDataSaveTool.updateLocalDataStatus(dataStruct, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
-                    ack(dataStruct);
+                    LocalDataSaveTool.updateLocalDataStatus(data, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
+                    ack(data);
                 });
                 break;
             case TABLE:
-                TableStructBasePipingData tableStruct = (TableStructBasePipingData) dataStruct;
+                TableStructBasePipingData tableStruct = (TableStructBasePipingData) data;
                 dataExecutor.execute(tableStruct.getSchemaName(), structConvertor.convert(tableStruct), () -> {
                     LocalDataSaveTool.updateLocalDataStatus(tableStruct, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
                     ack(tableStruct);
+                });
+                break;
+            case FULL_DATA:
+                FullTableDataBasePipingData tableData = (FullTableDataBasePipingData) data;
+                dataExecutor.execute(tableData.getSchemaName(), structConvertor.convert(tableData), () -> {
+                    LocalDataSaveTool.updateLocalDataPosition(tableData, tableData.getPosition());
+                    ack(tableData);
                 });
                 break;
 

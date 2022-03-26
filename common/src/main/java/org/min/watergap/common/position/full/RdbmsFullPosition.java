@@ -22,6 +22,10 @@ public class RdbmsFullPosition implements Position {
         parse(postion);
     }
 
+    public RdbmsFullPosition(Map<String, String> keyValMap) {
+        positionMap = keyValMap;
+    }
+
     @Override
     public String getVal(String key) {
         if (positionMap == null) {
