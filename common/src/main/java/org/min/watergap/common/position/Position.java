@@ -11,4 +11,8 @@ public interface Position {
 
     void parse(String position);
 
+    String toString();
+
+    boolean isFirst();
+
 }

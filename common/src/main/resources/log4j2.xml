@@ -23,11 +23,11 @@
             </Policies>
         </RollingFile>
         <Console name="STDOUT" target="SYSTEM_OUT" ignoreExceptions="false">
-            <PatternLayout pattern="%m%n"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="info">
+        <Root level="DEBUG">
             <AppenderRef ref="STDOUT"/>
         </Root>
     </Loggers>

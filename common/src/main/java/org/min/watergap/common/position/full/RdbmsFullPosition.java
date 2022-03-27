@@ -40,7 +40,15 @@ public class RdbmsFullPosition implements Position {
         positionMap = gson.fromJson(position, HashMap.class);
     }
 
-    public boolean isStartPosition() {
+    @Override
+    public String toString() {
+        Gson gson = new Gson();
+        return gson.toJson(positionMap);
+    }
+
+    @Override
+    public boolean isFirst() {
         return positionMap == null || positionMap.isEmpty();
     }
+
 }

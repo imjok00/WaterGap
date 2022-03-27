@@ -1,5 +1,7 @@
 package org.min.watergap.intake.full.rdbms;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
@@ -8,24 +10,24 @@ import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.utils.CollectionsUtils;
-import org.min.watergap.intake.full.DBStructPumper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.min.watergap.common.utils.StringUtils;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 关系型数据库数据结构导出
  *
  * @Create by metaX.h on 2021/11/10 23:16
  */
-public class RdbmsDBStructPumper extends DBStructPumper {
-    private static final Logger LOG = LoggerFactory.getLogger(RdbmsDBStructPumper.class);
+public class RdbmsDBStructPumper extends RdbmsDataPumper {
+    private static final Logger LOG = LogManager.getLogger(RdbmsDBStructPumper.class);
 
     @Override
     public void pump() throws WaterGapException {
@@ -52,16 +54,16 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                             }
                         });
                         break;
-                    case TABLE: /* 表结构迁移完成之后开始迁移数据 */
-                        runPumpWork(() -> {
-                            TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
-                            try {
-                                startDataPumper(tableStruct);
-                            } catch (InterruptedException e) {
-                                LOG.error("start pump data interrupt error", e);
-                            }
-                        });
-                        break;
+//                    case TABLE: /* 表结构迁移完成之后开始迁移数据 */
+//                        runPumpWork(() -> {
+//                            TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
+//                            try {
+//                                startDataPumper(tableStruct);
+//                            } catch (InterruptedException e) {
+//                                LOG.error("start pump data interrupt error", e);
+//                            }
+//                        });
+//                        break;
                     case FULL_DATA: /* 数据更新以后回调,进入下一part提取 */
                         runPumpWork(() -> {
                             FullTableDataBasePipingData tableDataBasePipingData = (FullTableDataBasePipingData) pipingData;
@@ -69,6 +71,8 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                                 startNextDataPumper(tableDataBasePipingData);
                             } catch (InterruptedException e) {
                                 LOG.error("start pump data interrupt error", e);
+                            } catch (SQLException e) {
+                                LOG.error("get source table data error", e);
                             }
                         });
                         break;
@@ -80,12 +84,21 @@ public class RdbmsDBStructPumper extends DBStructPumper {
         }
     }
 
-    private void startDataPumper(TableStructBasePipingData tableStruct) throws InterruptedException {
-        structPiping.put(new FullTableDataBasePipingData(tableStruct));
-    }
-
-    private void startNextDataPumper(FullTableDataBasePipingData data) throws InterruptedException {
-        structPiping.put(data);
+    private void startNextDataPumper(FullTableDataBasePipingData tableData) throws InterruptedException, SQLException {
+        String selectSql = generateSelectSQL(tableData);
+        executeStreamQuery(tableData.getSchemaName(), selectSql, (resultSet) -> {
+            FullTableDataBasePipingData.ColumnValContain contain
+                    = new FullTableDataBasePipingData.ColumnValContain(tableData.getColumns());
+            while (resultSet.next()) {
+                Map<String, Object> map = new HashMap<>();
+                for (TableStructBasePipingData.Column column : tableData.getColumns()) {
+                    map.put(column.getColumnName(), convertSqlType(column, resultSet));
+                }
+                contain.addVal(map);
+            }
+            tableData.setContain(contain);
+            structPiping.put(tableData);
+        });
     }
 
     /**
@@ -138,21 +151,121 @@ public class RdbmsDBStructPumper extends DBStructPumper {
                 pipingData.setSourceCreateSql(resultSet.getString(2));
             }
         });
-        pipingData.setColumns(new ArrayList<>());
-        try(
-                Connection connection = dataSource.getDataSource().getConnection()
-        ) {
-            DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet rs = metaData.getColumns(pipingData.getSchemaName(), pipingData.getSchemaName(),
-                    pipingData.getTableName(), null);
-            while (rs.next()) {
-                String name = rs.getString(3);
-                String columnName = rs.getString(4);
-                // SQL type from java.sql.Types
-                int columnType = rs.getInt(5);
-                String typeName = rs.getString(6);
+        extractTableColumns(pipingData);
+        extractTablePrimaryKeys(pipingData);
+        extractTableUniqueKeys(pipingData);
+        extractTableNormalKeys(pipingData);
+        extractTableForeignKes(pipingData);
+    }
 
+    private void extractTableColumns(TableStructBasePipingData pipingData) throws SQLException {
+        pipingData.initColumns();
+        try(
+                Connection connection = dataSource.getDataSource().getConnection();
+                ResultSet rs = connection.getMetaData().getColumns(pipingData.getSchemaName(), pipingData.getSchemaName(),
+                        pipingData.getTableName(), null);
+        ) {
+            while (rs.next()) {
+
+                String columnName = rs.getString("COLUMN_NAME");
+                // SQL type from java.sql.Types
+                int columnType = rs.getInt("DATA_TYPE");
+                String typeName = rs.getString("TYPE_NAME");
+                columnType = convertSqlType(columnType, typeName);
                 pipingData.addColumn(new TableStructBasePipingData.Column(columnName, columnType, typeName));
+            }
+        }
+    }
+
+    private static int convertSqlType(int columnType, String typeName) {
+        String[] typeSplit = typeName.split(" ");
+        if (typeSplit.length > 1) {
+            if (columnType == Types.INTEGER && StringUtils.equalsIgnoreCase(typeSplit[1], "UNSIGNED")) {
+                columnType = Types.BIGINT;
+            }
+        }
+
+        if (columnType == Types.OTHER) {
+            if (StringUtils.equalsIgnoreCase(typeName, "NVARCHAR")
+                    || StringUtils.equalsIgnoreCase(typeName, "NVARCHAR2")) {
+                columnType = Types.VARCHAR;
+            }
+
+            if (StringUtils.equalsIgnoreCase(typeName, "NCLOB")) {
+                columnType = Types.CLOB;
+            }
+
+            if (StringUtils.startsWithIgnoreCase(typeName, "TIMESTAMP")) {
+                columnType = Types.TIMESTAMP;
+            }
+        }
+        return columnType;
+    }
+
+
+
+    private void extractTablePrimaryKeys(TableStructBasePipingData pipingData) throws SQLException {
+        try(
+                Connection connection = dataSource.getDataSource().getConnection();
+                ResultSet rs = connection.getMetaData().getPrimaryKeys(pipingData.getSchemaName(), pipingData.getSchemaName(),
+                        pipingData.getTableName());
+        ) {
+            while (rs.next()) {
+                String columnName = rs.getString("COLUMN_NAME");
+                Integer keySeq = rs.getInt("KEY_SEQ");
+                pipingData.addPrimaryKeys(new TableStructBasePipingData.Column(columnName));
+            }
+        }
+    }
+
+    private void extractTableUniqueKeys(TableStructBasePipingData pipingData) throws SQLException {
+        try(
+                Connection connection = dataSource.getDataSource().getConnection();
+                ResultSet rs = connection.getMetaData().getIndexInfo(pipingData.getSchemaName(), pipingData.getSchemaName(),
+                        pipingData.getTableName(), true, false);
+        ) {
+            while (rs.next()) {
+                String indexName = rs.getString("INDEX_NAME");
+                String columnName = rs.getString("COLUMN_NAME");
+                int indexType = rs.getInt("TYPE");
+                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
+                String ascOrDesc = rs.getString("ASC_OR_DESC");
+                pipingData.addUniqueKeys(indexName, new TableStructBasePipingData.Column(columnName));
+            }
+        }
+    }
+
+    private void extractTableNormalKeys(TableStructBasePipingData pipingData) throws SQLException {
+        try(
+                Connection connection = dataSource.getDataSource().getConnection();
+                ResultSet rs = connection.getMetaData().getIndexInfo(pipingData.getSchemaName(), pipingData.getSchemaName(),
+                        pipingData.getTableName(), false, false);
+        ) {
+            while (rs.next()) {
+                String indexName = rs.getString("INDEX_NAME");
+                String columnName = rs.getString("COLUMN_NAME");
+                int indexType = rs.getInt("TYPE");
+                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
+                String ascOrDesc = rs.getString("ASC_OR_DESC");
+                pipingData.addNormalKeys(indexName, new TableStructBasePipingData.Column(columnName));
+            }
+        }
+    }
+
+    private void extractTableForeignKes(TableStructBasePipingData pipingData) throws SQLException {
+        try(
+                Connection connection = dataSource.getDataSource().getConnection();
+                ResultSet rs = connection.getMetaData().getImportedKeys(pipingData.getSchemaName(), pipingData.getSchemaName(),
+                        pipingData.getTableName());
+                //connection.getMetaData().getExportedKeys()
+        ) {
+            while (rs.next()) {
+                String PKCOLUMN_NAME = rs.getString("PKCOLUMN_NAME");
+                String FKCOLUMN_NAME = rs.getString("FKCOLUMN_NAME");
+                int KEY_SEQ = rs.getInt("KEY_SEQ");
+                String FK_NAME = rs.getString("FK_NAME");
+                String PK_NAME = rs.getString("PK_NAME");
+                pipingData.addForeignKes(FK_NAME, new TableStructBasePipingData.Column(FKCOLUMN_NAME));
             }
         }
     }

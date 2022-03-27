@@ -57,7 +57,7 @@ public class LocalDataSaveTool {
      */
     public static boolean updateLocalDataPosition(PipingData data, Position position) throws SQLException {
         Map<String, Object> map = new HashMap<>();
-        map.put("offset", position);
+        map.put("offset", position.toString());
         return SqliteUtils.executeSQL(data.generateUpdateSQL(map));
     }
 }

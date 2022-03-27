@@ -4,6 +4,8 @@ import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.local.storage.entity.FullTableStatus;
 import org.min.watergap.common.rdbms.struct.StructType;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +29,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         return columns;
     }
 
+    public void initColumns() {
+        this.columns = new ArrayList<>();
+    }
+
     public void setColumns(List<Column> columns) {
         this.columns = columns;
     }
@@ -41,6 +47,60 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     public void addColumn(Column column) {
         this.columns.add(column);
+    }
+
+    public void addPrimaryKeys(Column column) {
+        if (this.indexInfo == null) {
+            this.indexInfo = new IndexInfo();
+        }
+        if (this.indexInfo.getPrimaryKeys() == null) {
+            this.indexInfo.setPrimaryKeys(new ArrayList<>());
+        }
+        this.indexInfo.getPrimaryKeys().add(column);
+    }
+
+    public void addUniqueKeys(String keyName, Column column) {
+        if (this.indexInfo == null) {
+            this.indexInfo = new IndexInfo();
+        }
+        if (this.indexInfo.getUniqueKeys() == null) {
+            this.indexInfo.setUniqueKeys(new HashMap<>());
+        }
+        List<Column> ukeys = this.indexInfo.getUniqueKeys().get(keyName);
+        if (ukeys == null) {
+            ukeys = new ArrayList<>();
+        }
+        ukeys.add(column);
+    }
+
+    public void addNormalKeys(String keyName, Column column) {
+        if (this.indexInfo == null) {
+            this.indexInfo = new IndexInfo();
+        }
+        if (this.indexInfo.getNormalKeys() == null) {
+            this.indexInfo.setNormalKeys(new HashMap<>());
+        }
+        List<Column> ukeys = this.indexInfo.getNormalKeys().get(keyName);
+        if (ukeys == null) {
+            ukeys = new ArrayList<>();
+        }
+        ukeys.add(column);
+        this.indexInfo.getNormalKeys().put(keyName, ukeys);
+    }
+
+    public void addForeignKes(String keyName, Column column) {
+        if (this.indexInfo == null) {
+            this.indexInfo = new IndexInfo();
+        }
+        if (this.indexInfo.getForeignKes() == null) {
+            this.indexInfo.setForeignKes(new HashMap<>());
+        }
+        List<Column> ukeys = this.indexInfo.getForeignKes().get(keyName);
+        if (ukeys == null) {
+            ukeys = new ArrayList<>();
+        }
+        ukeys.add(column);
+        this.indexInfo.getForeignKes().put(keyName, ukeys);
     }
 
     @Override
@@ -73,6 +133,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             this.columnName = columnName;
             this.columnType = columnType;
             this.typeName = typeName;
+        }
+
+        public Column(String columnName) {
+            this.columnName = columnName;
         }
 
         public String getColumnName() {

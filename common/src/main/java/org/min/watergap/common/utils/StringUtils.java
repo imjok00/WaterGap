@@ -22,4 +22,18 @@ public class StringUtils {
     public static String createReplaceStr(String seed,int n) {
         return String.join(",", Collections.nCopies(n, seed));
     }
+
+    public static boolean equalsIgnoreCase(String s1, String s2) {
+        if (s1 == null) {
+            return false;
+        }
+        return s1.equalsIgnoreCase(s2);
+    }
+
+    public static boolean startsWithIgnoreCase(String s1, String s2) {
+        if (s1 == null || s2 == null) {
+            return false;
+        }
+        return s1.toUpperCase().startsWith(s2.toUpperCase());
+    }
 }

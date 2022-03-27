@@ -1,5 +1,7 @@
 package org.min.watergap.outfall;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.config.DatabaseType;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.exception.WaterGapException;
@@ -8,13 +10,11 @@ import org.min.watergap.common.piping.WaterGapPiping;
 import org.min.watergap.common.piping.struct.impl.BasePipingData;
 import org.min.watergap.outfall.rdbms.DataExecutor;
 import org.min.watergap.outfall.rdbms.RdbmsDataExecutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
 public abstract class OutFallDrainer implements Drainer {
-    private static final Logger LOG = LoggerFactory.getLogger(OutFallDrainer.class);
+    private static final Logger LOG = LogManager.getLogger(OutFallDrainer.class);
 
     protected DataExecutor dataExecutor;
 

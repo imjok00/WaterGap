@@ -31,12 +31,13 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
                 TableStructBasePipingData tableStruct = (TableStructBasePipingData) data;
                 dataExecutor.execute(tableStruct.getSchemaName(), structConvertor.convert(tableStruct), () -> {
                     LocalDataSaveTool.updateLocalDataStatus(tableStruct, AbstractLocalStorageEntity.LocalStorageStatus.COMPLETE.getStatus());
-                    ack(tableStruct);
+                    // 表结构迁移完成，开始迁移数据
+                    ackAndStartFullTableData(tableStruct);
                 });
                 break;
             case FULL_DATA:
                 FullTableDataBasePipingData tableData = (FullTableDataBasePipingData) data;
-                dataExecutor.execute(tableData.getSchemaName(), structConvertor.convert(tableData), () -> {
+                dataExecutor.executeBatch(tableData.getSchemaName(), structConvertor.convert(tableData), tableData.getContain(), () -> {
                     LocalDataSaveTool.updateLocalDataPosition(tableData, tableData.getPosition());
                     ack(tableData);
                 });
@@ -46,5 +47,9 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
 
     }
 
+    private void ackAndStartFullTableData(TableStructBasePipingData tableStruct) {
+        FullTableDataBasePipingData fullTableDataBasePipingData = new FullTableDataBasePipingData(tableStruct);
+        ack(fullTableDataBasePipingData);
+    }
 
 }

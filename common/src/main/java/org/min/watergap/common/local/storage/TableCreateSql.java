@@ -17,6 +17,6 @@ public class TableCreateSql {
                     "schemaName VARCHAR(255)," +
                     "tableName VARCHAR(255)," +
                     "sourceCreateSql TEXT," +
-                    "offset BIGINT," +
+                    "offset TEXT," +
                     "status INT)";
 }

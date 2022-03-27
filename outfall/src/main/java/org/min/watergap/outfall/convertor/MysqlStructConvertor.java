@@ -1,8 +1,12 @@
 package org.min.watergap.outfall.convertor;
 
+import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.common.piping.struct.impl.BasePipingData;
 import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
+import org.min.watergap.common.utils.StringUtils;
+
+import java.util.stream.Collectors;
 
 public class MysqlStructConvertor implements StructConvertor {
 
@@ -18,6 +22,9 @@ public class MysqlStructConvertor implements StructConvertor {
                 TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
                 // 表结构构建
                 return generateMysqlCreateTable(tableStruct);
+            case FULL_DATA:
+                FullTableDataBasePipingData tableData = (FullTableDataBasePipingData) pipingData;
+                return generateMysqlInsert(tableData);
         }
         return null;
     }
@@ -51,4 +58,30 @@ public class MysqlStructConvertor implements StructConvertor {
         }
     }
 
+    private String generateMysqlInsert(FullTableDataBasePipingData tableData) {
+        String insertTemplate = "INSERT INTO %s (%s) values (%s) ON DUPLICATE KEY UPDATE ";
+        String columnsStr = tableData.getColumns().stream()
+                .map(TableStructBasePipingData.Column::getColumnName).collect(Collectors.joining("`,`"));
+        String valuesStr = StringUtils.createReplaceStr("?", tableData.getColumns().size());
+        StringBuilder sql = new StringBuilder(String.format(insertTemplate, tableData.getTableName(),
+                "`" + columnsStr + "`", valuesStr));
+
+
+        for (int i = 0, size = tableData.getColumns().size(); i < size; i++) {
+            String afterFmtColumnName = fmtColumnName(tableData.getColumns().get(i).getColumnName());
+            sql.append(afterFmtColumnName)
+                    .append("=VALUES(")
+                    .append(afterFmtColumnName)
+                    .append(")");
+            if (i != size - 1) {
+                sql.append(",");
+            }
+        }
+        return sql.toString();
+    }
+
+
+    protected String fmtColumnName(String columName) {
+        return String.format("`%s`", columName);
+    }
 }
