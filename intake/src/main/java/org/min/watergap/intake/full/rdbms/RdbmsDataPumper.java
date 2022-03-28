@@ -16,9 +16,19 @@ import java.sql.Types;
  */
 public abstract class RdbmsDataPumper extends DBDataPumper {
 
-    @Override
-    public void isStart() {
+    protected volatile boolean running = false;
 
+    @Override
+    public boolean isStart() {
+        return running;
+    }
+
+    public void setRunning() {
+        running = true;
+    }
+
+    public void setStop() {
+        running = false;
     }
 
     @Override

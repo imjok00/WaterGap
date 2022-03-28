@@ -19,13 +19,12 @@ public class Launcher {
 
     private static final String SYS_PROP_JSON_PATH = "JsonPath";
 
-    private static Runner runner;
-
     public static void main(String[] args) {
         LOG.info("## Launcher start ...");
         WaterGapGlobalConfig globalConfig = new WaterGapGlobalConfig(SystemPropUtils.getStr(SYS_PROP_JSON_PATH));
         WaterGapContext waterGapContext = new WaterGapContext(globalConfig);
-        runner = MigrateModeFactory.chooseRunner(waterGapContext.getStartMode());
+        LOG.info("## run mode is {}", waterGapContext.getStartMode());
+        Runner runner = MigrateModeFactory.chooseRunner(waterGapContext.getStartMode());
         runner.init(waterGapContext);
         runner.start();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -33,7 +32,6 @@ public class Launcher {
         }));
         runner.destroy();
     }
-
 
 
 }

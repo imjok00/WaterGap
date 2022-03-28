@@ -57,7 +57,9 @@ public abstract class DBStructPumper implements Pumper {
         //this.dataPiping = waterGapContext.getDataPiping();
         concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
         isIdentical = waterGapContext.isIdentical();
+        LOG.info("## Source Type And Target Type is identical {}", isIdentical);
         sqlSelectLimit = waterGapContext.getSqlSelectLimit();
+        LOG.info("## SQL Select Limit is {}", sqlSelectLimit);
     }
 
     @Override

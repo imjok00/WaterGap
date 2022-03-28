@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
  *
  * @Create by metaX.h on 2021/11/4 23:30
  */
-public class MysqlDBStructPumper extends RdbmsDBStructPumper {
-    private static final Logger LOG = LogManager.getLogger(MysqlDBStructPumper.class);
+public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
+    private static final Logger LOG = LogManager.getLogger(MysqlDBAllTypePumper.class);
     public static final List<String> SYSTEM_EXCLUDE_SCHEMAS = Arrays.asList("information_schema", "mysql", "performance_schema", "sys");
 
     @Override

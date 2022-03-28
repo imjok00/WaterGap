@@ -26,6 +26,8 @@ public abstract class OutFallDrainer implements Drainer {
 
     protected ThreadPoolExecutor concurrentExecutorWork;
 
+    protected volatile boolean isRunning;
+
     protected abstract void doExecute(BasePipingData dataStruct);
 
     @Override
@@ -34,13 +36,14 @@ public abstract class OutFallDrainer implements Drainer {
     }
 
     @Override
-    public void isStart() {
-
+    public boolean isStart() {
+        return isRunning;
     }
 
     @Override
     public void apply() {
         try {
+            isRunning = true;
             for (;;) {
                 PipingData pipingData = structPiping.take();
                 concurrentExecutorWork.execute(() -> {
@@ -48,6 +51,7 @@ public abstract class OutFallDrainer implements Drainer {
                 });
             }
         } catch (InterruptedException e) {
+            isRunning = false;
             LOG.error("poll event from fsink fail", e);
         }
     }

@@ -1,8 +1,10 @@
 package org.min.watergap.control.mode;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.intake.Pumper;
-import org.min.watergap.intake.full.rdbms.extractor.MysqlDBStructPumper;
+import org.min.watergap.intake.full.rdbms.extractor.MysqlDBAllTypePumper;
 import org.min.watergap.outfall.Drainer;
 import org.min.watergap.outfall.RdbmsOutFallDrainer;
 
@@ -13,6 +15,7 @@ import org.min.watergap.outfall.RdbmsOutFallDrainer;
  * @Create by metaX.h on 2021/11/3 23:52
  */
 public class FullStarter implements Runner {
+    private static final Logger LOG = LogManager.getLogger(FullStarter.class);
 
     private Pumper fullPumper;
 
@@ -22,11 +25,13 @@ public class FullStarter implements Runner {
     public void init(WaterGapContext waterGapContext) {
         switch (waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType()) {
             case MySQL:
-                fullPumper = new MysqlDBStructPumper();
+                LOG.info("# Init MySQL pumper...");
+                fullPumper = new MysqlDBAllTypePumper();
                 break;
         }
         switch (waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType()) {
             case MySQL:
+                LOG.info("# Init MySQL drainer...");
                 fullDrainer = new RdbmsOutFallDrainer();
                 break;
         }
@@ -37,17 +42,20 @@ public class FullStarter implements Runner {
 
     @Override
     public void start() {
+        LOG.info("### Full Pumper Starter ###");
         fullPumper.pump();
+        LOG.info("### Full Drainer Starter ###");
         fullDrainer.apply();
     }
 
     @Override
     public void destroy() {
         fullPumper.destroy();
+        fullDrainer.destroy();
     }
 
     @Override
-    public void isStart() {
-
+    public boolean isStart() {
+        return fullPumper.isStart() && fullDrainer.isStart();
     }
 }

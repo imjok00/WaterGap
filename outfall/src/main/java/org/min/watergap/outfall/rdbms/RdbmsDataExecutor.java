@@ -21,6 +21,8 @@ public class RdbmsDataExecutor implements DataExecutor {
 
     protected DataSourceWrapper dataSource;
 
+    private boolean isRunning;
+
     @Override
     public int execute(String schema, String sql, PipDataAck callback){
         try {
@@ -199,7 +201,7 @@ public class RdbmsDataExecutor implements DataExecutor {
     }
 
     @Override
-    public void isStart() {
-
+    public boolean isStart() {
+        return isRunning;
     }
 }

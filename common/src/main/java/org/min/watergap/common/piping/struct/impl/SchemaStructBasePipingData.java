@@ -42,4 +42,11 @@ public class SchemaStructBasePipingData extends RdbmsStructBasePipingData {
     public String generateQuerySQL() {
         return new FullSchemaStatus(this.name).generateQueryOne();
     }
+
+    @Override
+    public String toString() {
+        return "SchemaStructBasePipingData{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

@@ -162,6 +162,15 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         public void setTypeName(String typeName) {
             this.typeName = typeName;
         }
+
+        @Override
+        public String toString() {
+            return "Column{" +
+                    "columnName='" + columnName + '\'' +
+                    ", columnType=" + columnType +
+                    ", typeName='" + typeName + '\'' +
+                    '}';
+        }
     }
 
 
@@ -208,4 +217,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         }
     }
 
+    @Override
+    public String toString() {
+        return "TableStructBasePipingData{" +
+                "columns=" + columns +
+                '}';
+    }
 }

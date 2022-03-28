@@ -81,5 +81,12 @@ public abstract class AbstractLocalStorageEntity {
             }
             return null;
         }
+
+        @Override
+        public String toString() {
+            return "LocalStorageStatus{" +
+                    "status=" + status +
+                    '}';
+        }
     }
 }

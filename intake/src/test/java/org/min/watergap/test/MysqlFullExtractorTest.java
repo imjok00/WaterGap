@@ -2,7 +2,7 @@ package org.min.watergap.test;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import org.min.watergap.intake.full.rdbms.extractor.MysqlDBStructPumper;
+import org.min.watergap.intake.full.rdbms.extractor.MysqlDBAllTypePumper;
 
 import java.sql.SQLException;
 
@@ -14,7 +14,7 @@ import java.sql.SQLException;
 public class MysqlFullExtractorTest extends TestCase {
     //private static final Logger LOG = LogManager.getLogger(MysqlFullExtractorTest.class);
 
-    private static MysqlDBStructPumper mysqlFullExtractor;
+    private static MysqlDBAllTypePumper mysqlFullExtractor;
 
     @Override
     protected void setUp() throws Exception {

@@ -107,4 +107,11 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
     public String generateUpdateSQL(Map<String, Object> objectMap) {
         return new FullDataPosition(getSchemaName(), getTableName()).generateUpdate(objectMap);
     }
+
+    @Override
+    public String toString() {
+        return "FullTableDataBasePipingData{" +
+                "position=" + position +
+                '}';
+    }
 }

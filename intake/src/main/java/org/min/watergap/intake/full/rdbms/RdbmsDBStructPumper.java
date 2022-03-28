@@ -31,6 +31,7 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
 
     @Override
     public void pump() throws WaterGapException {
+        setRunning();
         // step 1: get all table schema into localstorage
         extractDBSchema();
         // step 2: get ack to extract table
@@ -275,21 +276,24 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
         try {
             pipingDataList = getAllSchemaStructs();
             pipingDataList = filterPipData(pipingDataList);
+            LOG.info("### Schema Struct Num is {}", pipingDataList.size());
         } catch (Exception e) {
+            setStop();
             throw new WaterGapException("show table struct error", e);
         }
         if (CollectionsUtils.isNotEmpty(pipingDataList)) {
             pipingDataList.forEach(schemaStruct -> {
                 try {
                     AbstractLocalStorageEntity.LocalStorageStatus status = LocalDataSaveTool.getLocalDataStatus(schemaStruct);
+                    LOG.info("#### Query Schema Struct {} Status = {}", schemaStruct, status);
                     if (status == null) { // 还没有初始化
                         LocalDataSaveTool.save(schemaStruct);
                         structPiping.put(schemaStruct);
                     }
                 } catch (SQLException e) {
-                    throw new WaterGapException("save FullSchemaStatus to local fail", e);
+                    throw new WaterGapException("save " + schemaStruct + " to local fail", e);
                 } catch (InterruptedException e) {
-                    throw new WaterGapException("put schemaStruct to fsink fail", e);
+                    throw new WaterGapException("put " + schemaStruct + " to pip fail", e);
                 }
             });
         }

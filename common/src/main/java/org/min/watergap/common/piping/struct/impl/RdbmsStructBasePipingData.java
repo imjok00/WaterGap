@@ -37,5 +37,12 @@ public abstract class RdbmsStructBasePipingData extends BasePipingData {
         this.sourceCreateSql = sourceCreateSql;
     }
 
-
+    @Override
+    public String toString() {
+        return "RdbmsStructBasePipingData{" +
+                "schemaName='" + schemaName + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", sourceCreateSql='" + sourceCreateSql + '\'' +
+                '}';
+    }
 }
