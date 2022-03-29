@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.datasource.DataSourceWrapper;
+import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
 import org.min.watergap.common.piping.WaterGapPiping;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
@@ -15,7 +16,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -23,18 +23,14 @@ import java.util.concurrent.ThreadPoolExecutor;
  *
  * @Create by metaX.h on 2021/11/4 23:26
  */
-public abstract class DBStructPumper implements Pumper {
-    private static final Logger LOG = LogManager.getLogger(DBStructPumper.class);
-
-    protected volatile int pumpStatus;
+public abstract class DBPumper extends AbstractWaterGapLifeCycle implements Pumper {
+    private static final Logger LOG = LogManager.getLogger(DBPumper.class);
 
     protected DataSourceWrapper dataSource;
 
     protected DBDialect pumperDBDialect;
 
     protected WaterGapPiping structPiping;
-
-    //protected WaterGapPiping dataPiping;
 
     protected WaterGapPiping ackPiping;
 
@@ -64,6 +60,7 @@ public abstract class DBStructPumper implements Pumper {
 
     @Override
     public void destroy() {
+
         try {
             dataSource.revert();
         } catch (IOException e) {
@@ -117,12 +114,6 @@ public abstract class DBStructPumper implements Pumper {
         } finally {
             releaseConnect(connection, statement, resultSet);
         }
-    }
-
-    protected void waitStageChange(int semaphoreNum) throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(semaphoreNum);
-
-        latch.await();
     }
 
     protected void releaseConnect(Connection connection, Statement statement, ResultSet resultSet) throws SQLException {

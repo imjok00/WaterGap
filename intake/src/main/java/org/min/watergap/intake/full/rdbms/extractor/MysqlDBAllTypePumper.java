@@ -73,7 +73,7 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
     }
 
     @Override
-    public void isStart() {
+    public boolean isStart() {
 
     }
 }

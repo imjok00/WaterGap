@@ -15,4 +15,8 @@ public interface WaterGapLifeCycle {
 
     boolean isStart();
 
+    void start();
+
+    void stop();
+
 }

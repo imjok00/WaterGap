@@ -8,7 +8,7 @@ import org.min.watergap.intake.DataPumper;
  *
  * @Create by metaX.h on 2022/3/20 20:07
  */
-public abstract class DBDataPumper extends DBStructPumper implements DataPumper {
+public abstract class DBDataPumper extends DBPumper implements DataPumper {
 
     protected abstract String generateSelectSQL(FullTableDataBasePipingData tableData);
 

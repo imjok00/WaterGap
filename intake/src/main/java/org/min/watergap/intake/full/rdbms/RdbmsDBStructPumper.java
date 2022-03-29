@@ -314,7 +314,7 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
     }
 
     @Override
-    public void isStart() {
+    public boolean isStart() {
 
     }
 
