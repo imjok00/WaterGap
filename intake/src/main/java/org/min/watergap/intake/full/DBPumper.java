@@ -50,21 +50,21 @@ public abstract class DBPumper extends AbstractWaterGapLifeCycle implements Pump
         this.pumperDBDialect = new DBDialectWrapper(waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType());
         structPiping = waterGapContext.getStructPiping();
         ackPiping = waterGapContext.getAckPiping();
-        //this.dataPiping = waterGapContext.getDataPiping();
         concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
         isIdentical = waterGapContext.isIdentical();
         LOG.info("## Source Type And Target Type is identical {}", isIdentical);
         sqlSelectLimit = waterGapContext.getSqlSelectLimit();
         LOG.info("## SQL Select Limit is {}", sqlSelectLimit);
+        start();
     }
 
     @Override
     public void destroy() {
-
+        stop();
         try {
             dataSource.revert();
         } catch (IOException e) {
-            LOG.info("revert dataSource fail", e);
+            LOG.warn("revert dataSource fail", e);
         }
 
     }

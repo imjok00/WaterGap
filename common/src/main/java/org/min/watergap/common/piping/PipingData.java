@@ -18,4 +18,6 @@ public interface PipingData {
     String generateUpdateSQL(Map<String, Object> objectMap);
 
     StructType getType();
+
+    void onCopy(PipingData data);
 }
