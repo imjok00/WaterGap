@@ -4,7 +4,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.LocalDataSaveTool;
-import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
+import org.min.watergap.common.local.storage.orm.MigrateStageORM;
+import org.min.watergap.common.local.storage.orm.SchemaStatusORM;
+import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
@@ -31,7 +33,8 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
 
     @Override
     public void pump() throws WaterGapException {
-        setRunning();
+        // step 0: add start flag
+        startStage();
         // step 1: get all table schema into localstorage
         extractDBSchema();
         // step 2: get ack to extract table
@@ -272,31 +275,32 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
     }
 
     private void extractDBSchema() {
+        MigrateStageORM migrateStageORM = migrateStageService.queryOne();
+        if (!migrateStageORM.getStage().equals(MigrateStageORM.StageEnum.START)) {
+            return;
+        }
         List<PipingData> pipingDataList = null;
         try {
             pipingDataList = getAllSchemaStructs();
             pipingDataList = filterPipData(pipingDataList);
             LOG.info("### Schema Struct Num is {}", pipingDataList.size());
         } catch (Exception e) {
-            setStop();
             throw new WaterGapException("show table struct error", e);
         }
         if (CollectionsUtils.isNotEmpty(pipingDataList)) {
             pipingDataList.forEach(schemaStruct -> {
-                try {
-                    AbstractLocalStorageEntity.LocalStorageStatus status = LocalDataSaveTool.getLocalDataStatus(schemaStruct);
-                    LOG.info("#### Query Schema Struct {} Status = {}", schemaStruct, status);
-                    if (status == null) { // 还没有初始化
-                        LocalDataSaveTool.save(schemaStruct);
-                        structPiping.put(schemaStruct);
-                    }
-                } catch (SQLException e) {
-                    throw new WaterGapException("save " + schemaStruct + " to local fail", e);
-                } catch (InterruptedException e) {
-                    throw new WaterGapException("put " + schemaStruct + " to pip fail", e);
+                SchemaStructBasePipingData schemaStructData = (SchemaStructBasePipingData) schemaStruct;
+                SchemaStatusORM schemaStatusORM = schemaStatusService.queryOne(schemaStructData.getSchemaName());
+                if (schemaStatusORM == null) { // 还没有初始化
+                    schemaStatusService.update(schemaStructData.getSchemaName(), MigrateStageService.LocalStorageStatus.INIT.getStatus());
+                    structPiping.put(schemaStruct);
+                } else {
+                    LOG.info("#### Query Schema Struct {}", schemaStatusORM);
                 }
             });
         }
+        // change stage
+        migrateStageService.updateStage(MigrateStageORM.StageEnum.SCHEMA_MIGRATED.toString());
     }
 
     protected List<PipingData> filterPipData(List<PipingData> pipingDataList) {
@@ -311,11 +315,6 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
             }
         });
         return schemaStructs;
-    }
-
-    @Override
-    public boolean isStart() {
-
     }
 
 }

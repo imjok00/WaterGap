@@ -2,6 +2,7 @@ package org.min.watergap.common.piping.struct.impl;
 
 import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
 import org.min.watergap.common.local.storage.entity.FullSchemaStatus;
+import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.rdbms.struct.StructType;
 
 import java.util.Map;
@@ -26,6 +27,11 @@ public class SchemaStructBasePipingData extends RdbmsStructBasePipingData {
     @Override
     public StructType getType() {
         return StructType.SCHEMA;
+    }
+
+    @Override
+    public void onCopy(PipingData data) {
+
     }
 
     @Override

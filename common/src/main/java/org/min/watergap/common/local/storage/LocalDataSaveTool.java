@@ -60,4 +60,6 @@ public class LocalDataSaveTool {
         map.put("offset", position.toString());
         return SqliteUtils.executeSQL(data.generateUpdateSQL(map));
     }
+
+
 }

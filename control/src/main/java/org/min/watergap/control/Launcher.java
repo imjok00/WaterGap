@@ -26,12 +26,19 @@ public class Launcher {
         LOG.info("## run mode is {}", waterGapContext.getStartMode());
         Runner runner = MigrateModeFactory.chooseRunner(waterGapContext.getStartMode());
         runner.init(waterGapContext);
-        runner.start();
+        try {
+            runner.start();
+            runner.waitForShutdown();
+        } catch (Exception e) {
+            LOG.error("Stop runner!!!", e);
+        } finally {
+            runner.destroy();
+        }
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             runner.destroy();
         }));
-        runner.destroy();
-    }
 
+    }
 
 }

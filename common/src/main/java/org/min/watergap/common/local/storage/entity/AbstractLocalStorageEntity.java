@@ -59,34 +59,4 @@ public abstract class AbstractLocalStorageEntity {
         return String.format(updateSQL, getLocalTableName(), updateKey, getSelectOneCondition());
     }
 
-    public static enum LocalStorageStatus {
-        INIT(0), COMPLETE(1);
-
-        private int status;
-
-        LocalStorageStatus(int status) {
-            this.status = status;
-        }
-
-        public int getStatus() {
-            return status;
-        }
-
-        public static LocalStorageStatus valueOf(int value) {
-            switch (value) {
-                case 0:
-                    return INIT;
-                case 1:
-                    return COMPLETE;
-            }
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return "LocalStorageStatus{" +
-                    "status=" + status +
-                    '}';
-        }
-    }
 }

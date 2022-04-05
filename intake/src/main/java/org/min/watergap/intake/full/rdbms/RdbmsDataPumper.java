@@ -1,9 +1,16 @@
 package org.min.watergap.intake.full.rdbms;
 
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
+import org.min.watergap.common.context.WaterGapContext;
+import org.min.watergap.common.local.storage.orm.MigrateStageORM;
+import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
+import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
+import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.position.Position;
 import org.min.watergap.intake.full.DBDataPumper;
+import org.min.watergap.outfall.Drainer;
+import org.min.watergap.outfall.RdbmsOutFallDrainer;
+import org.min.watergap.piping.WaterGapDisruptor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,19 +23,28 @@ import java.sql.Types;
  */
 public abstract class RdbmsDataPumper extends DBDataPumper {
 
-    protected volatile boolean running = false;
+    protected WaterGapDisruptor waterGapDisruptor;
+    protected Drainer[] drainers;
+    // 存储在本地的基础对象
+    protected FullTableStatusService fullTableStatusService;
+    protected SchemaStatusService schemaStatusService;
+    protected MigrateStageService migrateStageService;
 
     @Override
-    public boolean isStart() {
-        return running;
+    public void init(WaterGapContext waterGapContext) {
+        super.init(waterGapContext);
+        fullTableStatusService = new FullTableStatusService();
+        schemaStatusService = new SchemaStatusService();
+        migrateStageService = new MigrateStageService();
+        drainers = new RdbmsOutFallDrainer[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
+        waterGapDisruptor = new WaterGapDisruptor(drainers);
     }
 
-    public void setRunning() {
-        running = true;
-    }
-
-    public void setStop() {
-        running = false;
+    protected void startStage() {
+        MigrateStageORM migrateStageORM = migrateStageService.queryOne();
+        if (migrateStageORM == null) {
+            migrateStageService.create();
+        }
     }
 
     @Override
@@ -95,8 +111,5 @@ public abstract class RdbmsDataPumper extends DBDataPumper {
         }
     }
 
-    @Override
-    protected String generateSelectSQL(FullTableDataBasePipingData tableData) {
-        return null;
-    }
+
 }

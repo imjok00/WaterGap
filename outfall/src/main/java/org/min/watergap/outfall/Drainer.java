@@ -1,9 +1,8 @@
 package org.min.watergap.outfall;
 
-import org.min.watergap.common.lifecycle.WaterGapLifeCycle;
+import com.lmax.disruptor.WorkHandler;
+import org.min.watergap.common.piping.PipingData;
 
-public interface Drainer extends WaterGapLifeCycle {
-
-    void apply();
+public interface Drainer extends WorkHandler<PipingData> {
 
 }

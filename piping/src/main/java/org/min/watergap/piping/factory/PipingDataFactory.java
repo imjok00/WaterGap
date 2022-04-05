@@ -39,6 +39,11 @@ public class PipingDataFactory implements EventFactory<PipingData> {
             public StructType getType() {
                 return null;
             }
+
+            @Override
+            public void onCopy(PipingData data) {
+
+            }
         };
     }
 }

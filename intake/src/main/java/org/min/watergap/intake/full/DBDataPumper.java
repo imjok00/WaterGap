@@ -1,6 +1,5 @@
 package org.min.watergap.intake.full;
 
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.intake.DataPumper;
 
 /**
@@ -10,6 +9,5 @@ import org.min.watergap.intake.DataPumper;
  */
 public abstract class DBDataPumper extends DBPumper implements DataPumper {
 
-    protected abstract String generateSelectSQL(FullTableDataBasePipingData tableData);
 
 }

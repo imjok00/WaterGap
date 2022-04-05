@@ -14,4 +14,6 @@ public interface Runner extends WaterGapLifeCycle {
      */
     void start();
 
+    void waitForShutdown() throws InterruptedException;
+
 }
