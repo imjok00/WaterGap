@@ -35,9 +35,7 @@ public class Launcher {
             runner.destroy();
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            runner.destroy();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(runner::destroy));
 
     }
 

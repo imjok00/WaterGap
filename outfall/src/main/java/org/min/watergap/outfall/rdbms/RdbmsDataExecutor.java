@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.exception.WaterGapException;
+import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
 import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 
@@ -16,12 +17,10 @@ import java.util.stream.Collectors;
 /**
  * 关系型数据库，SQL执行器
  */
-public class RdbmsDataExecutor implements DataExecutor {
+public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements DataExecutor {
     private static final Logger LOG = LogManager.getLogger(RdbmsDataExecutor.class);
 
     protected DataSourceWrapper dataSource;
-
-    private boolean isRunning;
 
     @Override
     public int execute(String schema, String sql, PipDataAck callback){
@@ -197,11 +196,11 @@ public class RdbmsDataExecutor implements DataExecutor {
 
     @Override
     public void destroy() {
+        try {
+            dataSource.revert();
+        } catch (Exception e) {
+            LOG.error("target data executor destroy error", e);
+        }
 
-    }
-
-    @Override
-    public boolean isStart() {
-        return isRunning;
     }
 }

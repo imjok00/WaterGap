@@ -6,53 +6,57 @@ import org.min.watergap.common.config.DatabaseType;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
+import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionService;
+import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
+import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
+import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
 import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.piping.WaterGapPiping;
-import org.min.watergap.common.piping.struct.impl.BasePipingData;
 import org.min.watergap.outfall.rdbms.DataExecutor;
 import org.min.watergap.outfall.rdbms.RdbmsDataExecutor;
-
-import java.util.concurrent.ThreadPoolExecutor;
+import org.min.watergap.piping.thread.SingleThreadWorkGroup;
 
 public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implements Drainer {
     private static final Logger LOG = LogManager.getLogger(OutFallDrainer.class);
 
-    protected DataExecutor dataExecutor;
+    protected WaterGapContext waterGapContext;
 
-    protected WaterGapPiping structPiping;
+    protected DataExecutor dataExecutor;
 
     protected DatabaseType targetDBType;
 
     protected WaterGapPiping ackPiping;
 
-    protected ThreadPoolExecutor concurrentExecutorWork;
+    protected FullTableStatusService fullTableStatusService;
 
-    protected volatile boolean isRunning;
+    protected FullTableDataPositionService fullTableDataPositionService;
 
-    protected abstract void doExecute(BasePipingData dataStruct);
+    protected MigrateStageService migrateStageService;
+
+    protected SchemaStatusService schemaStatusService;
+
+    protected SingleThreadWorkGroup[] singleThreadWorkGroups;
+
+    protected abstract void doExecute(PipingData dataStruct);
+
 
     @Override
-    public void onEvent(PipingData data) throws Exception {
-        doExecute((BasePipingData) data);
+    public void apply() {
+        start();
+        startRunDrainer();
     }
 
-//    @Override
-//    public void apply() {
-//        try {
-//            isRunning = true;
-//            for (;;) {
-//                PipingData pipingData = structPiping.take();
-//                concurrentExecutorWork.execute(() -> {
-//
-//                });
-//            }
-//        } catch (InterruptedException e) {
-//            isRunning = false;
-//            LOG.error("poll event from fsink fail", e);
-//        }
-//    }
+    private void startRunDrainer() {
+        for (SingleThreadWorkGroup singleThreadWorkGroup : singleThreadWorkGroups) {
+            singleThreadWorkGroup = new SingleThreadWorkGroup(pipingData -> {
+                doExecute(pipingData);
+                return 1;
+            }, waterGapContext.getPumpPiping());
+            singleThreadWorkGroup.start();
+        }
+    }
 
-    protected void ack(BasePipingData pipingData) throws WaterGapException {
+    protected void ack(PipingData pipingData) throws WaterGapException {
         try {
             ackPiping.put(pipingData);
         } catch (InterruptedException e) {
@@ -63,11 +67,24 @@ public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implement
 
     @Override
     public void init(WaterGapContext waterGapContext) {
+        this.waterGapContext = waterGapContext;
         dataExecutor = new RdbmsDataExecutor();
-        dataExecutor.init(waterGapContext);
-        structPiping = waterGapContext.getStructPiping();
+        ((AbstractWaterGapLifeCycle)dataExecutor).init(waterGapContext);
         targetDBType = waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType();
         ackPiping = waterGapContext.getAckPiping();
-        concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
+        singleThreadWorkGroups = new SingleThreadWorkGroup[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
+        fullTableStatusService = new FullTableStatusService();
+        migrateStageService = new MigrateStageService();
+        schemaStatusService = new SchemaStatusService();
+        fullTableDataPositionService = new FullTableDataPositionService();
+    }
+
+    @Override
+    public void destroy() {
+        if (singleThreadWorkGroups != null) {
+            for (SingleThreadWorkGroup singleThreadWorkGroup : singleThreadWorkGroups) {
+                singleThreadWorkGroup.destroy();
+            }
+        }
     }
 }

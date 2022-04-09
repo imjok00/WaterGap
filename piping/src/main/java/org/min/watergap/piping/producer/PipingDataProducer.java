@@ -20,7 +20,7 @@ public class PipingDataProducer {
         long sequence = ringBuffer.next();
         try {
             PipingData emptyData = ringBuffer.get(sequence);
-            emptyData.onCopy(data);
+            //emptyData.onCopy(data);
         } finally {
             ringBuffer.publish(sequence);
         }

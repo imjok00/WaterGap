@@ -1,6 +1,5 @@
 package org.min.watergap.common.piping.data.impl;
 
-import org.min.watergap.common.local.storage.entity.FullDataPosition;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.position.Position;
 import org.min.watergap.common.position.full.RdbmsFullPosition;
@@ -101,11 +100,6 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
     @Override
     public StructType getType() {
         return StructType.FULL_DATA;
-    }
-
-    @Override
-    public String generateUpdateSQL(Map<String, Object> objectMap) {
-        return new FullDataPosition(getSchemaName(), getTableName()).generateUpdate(objectMap);
     }
 
     @Override

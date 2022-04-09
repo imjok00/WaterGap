@@ -5,12 +5,10 @@ import org.min.watergap.common.local.storage.orm.MigrateStageORM;
 import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
+import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
-import org.min.watergap.common.position.Position;
-import org.min.watergap.intake.full.DBDataPumper;
-import org.min.watergap.outfall.Drainer;
-import org.min.watergap.outfall.RdbmsOutFallDrainer;
-import org.min.watergap.piping.WaterGapDisruptor;
+import org.min.watergap.intake.full.DBPumper;
+import org.min.watergap.piping.thread.SingleThreadWorkGroup;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,14 +19,13 @@ import java.sql.Types;
  *
  * @Create by metaX.h on 2022/3/20 20:09
  */
-public abstract class RdbmsDataPumper extends DBDataPumper {
+public abstract class RdbmsDataPumper extends DBPumper {
 
-    protected WaterGapDisruptor waterGapDisruptor;
-    protected Drainer[] drainers;
     // 存储在本地的基础对象
     protected FullTableStatusService fullTableStatusService;
     protected SchemaStatusService schemaStatusService;
     protected MigrateStageService migrateStageService;
+    protected SingleThreadWorkGroup[] workGroups;
 
     @Override
     public void init(WaterGapContext waterGapContext) {
@@ -36,20 +33,25 @@ public abstract class RdbmsDataPumper extends DBDataPumper {
         fullTableStatusService = new FullTableStatusService();
         schemaStatusService = new SchemaStatusService();
         migrateStageService = new MigrateStageService();
-        drainers = new RdbmsOutFallDrainer[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
-        waterGapDisruptor = new WaterGapDisruptor(drainers);
+        workGroups = new SingleThreadWorkGroup[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        if (workGroups != null) {
+            for (SingleThreadWorkGroup singleThreadWorkGroup : workGroups) {
+                singleThreadWorkGroup.destroy();
+            }
+        }
     }
 
     protected void startStage() {
+        super.start();
         MigrateStageORM migrateStageORM = migrateStageService.queryOne();
         if (migrateStageORM == null) {
             migrateStageService.create();
         }
-    }
-
-    @Override
-    public void persistPosition(Position position) {
-
     }
 
     protected Object convertSqlType(TableStructBasePipingData.Column column, ResultSet resultSet) throws SQLException {
@@ -111,5 +113,6 @@ public abstract class RdbmsDataPumper extends DBDataPumper {
         }
     }
 
+    protected abstract String generateSelectSQL(FullTableDataBasePipingData tableData);
 
 }

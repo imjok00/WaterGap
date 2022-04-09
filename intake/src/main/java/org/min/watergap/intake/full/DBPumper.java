@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
-import org.min.watergap.common.piping.WaterGapPiping;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
 import org.min.watergap.intake.dialect.DBDialectWrapper;
@@ -16,7 +15,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 数据结构抽取器
@@ -30,13 +28,7 @@ public abstract class DBPumper extends AbstractWaterGapLifeCycle implements Pump
 
     protected DBDialect pumperDBDialect;
 
-    protected WaterGapPiping structPiping;
-
-    protected WaterGapPiping ackPiping;
-
     protected WaterGapContext waterGapContext;
-
-    protected ThreadPoolExecutor concurrentExecutorWork;
 
     protected boolean isIdentical;
 
@@ -48,14 +40,10 @@ public abstract class DBPumper extends AbstractWaterGapLifeCycle implements Pump
         this.waterGapContext = waterGapContext;
         this.dataSource = waterGapContext.getInDataSource();
         this.pumperDBDialect = new DBDialectWrapper(waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType());
-        structPiping = waterGapContext.getStructPiping();
-        ackPiping = waterGapContext.getAckPiping();
-        concurrentExecutorWork = waterGapContext.getConcurrentExecutorWork();
         isIdentical = waterGapContext.isIdentical();
         LOG.info("## Source Type And Target Type is identical {}", isIdentical);
         sqlSelectLimit = waterGapContext.getSqlSelectLimit();
         LOG.info("## SQL Select Limit is {}", sqlSelectLimit);
-        start();
     }
 
     @Override
@@ -67,10 +55,6 @@ public abstract class DBPumper extends AbstractWaterGapLifeCycle implements Pump
             LOG.warn("revert dataSource fail", e);
         }
 
-    }
-
-    public void runPumpWork(Runnable runnable) {
-        concurrentExecutorWork.execute(runnable);
     }
 
     public void executeQuery(String querySql, ResultSetCallback resultSetCallback) throws SQLException, InterruptedException {

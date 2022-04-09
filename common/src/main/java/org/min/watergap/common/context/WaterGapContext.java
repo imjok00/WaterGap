@@ -5,10 +5,6 @@ import org.min.watergap.common.config.mode.StartMode;
 import org.min.watergap.common.datasource.DataSourceFactory;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.piping.WaterGapPiping;
-import org.min.watergap.piping.WaterGapDisruptor;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * context对象
@@ -23,19 +19,16 @@ public class WaterGapContext {
 
     private WaterGapGlobalConfig globalConfig;
 
-    protected WaterGapDisruptor waterGapDisruptor;
-
     private WaterGapPiping ackPiping;
 
-    private ThreadPoolExecutor concurrentExecutorWork;
-
-    private CountDownLatch shutdownLatch;
+    private WaterGapPiping pumpPiping;
 
     public WaterGapContext(WaterGapGlobalConfig globalConfig) {
         this.globalConfig = globalConfig;
         inDataSource = DataSourceFactory.getDataSource(globalConfig.getSourceConfig());
         outDataSource = DataSourceFactory.getDataSource(globalConfig.getTargetConfig());
         ackPiping = new WaterGapPiping();
+        pumpPiping = new WaterGapPiping();
     }
 
     public StartMode getStartMode() {
@@ -58,8 +51,8 @@ public class WaterGapContext {
         return ackPiping;
     }
 
-    public ThreadPoolExecutor getConcurrentExecutorWork() {
-        return concurrentExecutorWork;
+    public WaterGapPiping getPumpPiping() {
+        return pumpPiping;
     }
 
     public boolean isIdentical() {
@@ -71,11 +64,4 @@ public class WaterGapContext {
         return globalConfig.getSqlSelectLimit();
     }
 
-    public void countDown() {
-        shutdownLatch.countDown();
-    }
-
-    public void waitForShutdown() throws InterruptedException {
-        shutdownLatch.await();
-    }
 }

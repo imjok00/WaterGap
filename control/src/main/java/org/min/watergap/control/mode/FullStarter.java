@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
+import org.min.watergap.common.lifecycle.WaterGapLifeCycle;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.full.rdbms.extractor.MysqlDBAllTypePumper;
 import org.min.watergap.outfall.Drainer;
@@ -40,8 +41,8 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
                 break;
         }
 
-        fullPumper.init(waterGapContext);
-        fullDrainer.init(waterGapContext);
+        ((WaterGapLifeCycle)fullPumper).init(waterGapContext);
+        ((WaterGapLifeCycle)fullDrainer).init(waterGapContext);
     }
 
     @Override
@@ -55,14 +56,22 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
 
     @Override
     public void waitForShutdown() throws InterruptedException {
-        waterGapContext.waitForShutdown();
+        WaterGapLifeCycle pumpLife = (WaterGapLifeCycle) fullPumper;
+        while (pumpLife.isStart()) {
+            Thread.sleep(1000); // sleep 1s
+        }
+
+        WaterGapLifeCycle drainerLife = (WaterGapLifeCycle) fullDrainer;
+        while (drainerLife.isStart()) {
+            Thread.sleep(1000); // sleep 1s
+        }
     }
 
     @Override
     public void destroy() {
         super.stop();
-        fullPumper.destroy();
-        fullDrainer.destroy();
+        ((WaterGapLifeCycle) fullPumper).destroy();
+        ((WaterGapLifeCycle)fullDrainer).destroy();
     }
 
 }

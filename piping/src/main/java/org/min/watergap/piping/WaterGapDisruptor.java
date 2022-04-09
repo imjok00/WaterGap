@@ -1,11 +1,11 @@
 package org.min.watergap.piping;
 
+import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.YieldingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.lmax.disruptor.util.DaemonThreadFactory;
 import org.min.watergap.common.piping.PipingData;
-import org.min.watergap.outfall.Drainer;
 import org.min.watergap.piping.factory.PipingDataFactory;
 import org.min.watergap.piping.producer.PipingDataProducer;
 
@@ -32,7 +32,7 @@ public class WaterGapDisruptor {
 
     private final Map<Thread, PipingDataProducer> producerMap;
 
-    public WaterGapDisruptor(Drainer... pipingDataHandlers) {
+    public WaterGapDisruptor(WorkHandler<PipingData>... pipingDataHandlers) {
         DISRUPTOR.handleEventsWithWorkerPool(pipingDataHandlers);
         DISRUPTOR.start();
         PIPINGDATA_PRODUCER = new PipingDataProducer(DISRUPTOR.getRingBuffer());

@@ -3,8 +3,6 @@ package org.min.watergap.intake.full.rdbms;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
-import org.min.watergap.common.local.storage.LocalDataSaveTool;
-import org.min.watergap.common.local.storage.orm.MigrateStageORM;
 import org.min.watergap.common.local.storage.orm.SchemaStatusORM;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.piping.PipingData;
@@ -13,6 +11,7 @@ import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
 import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.common.utils.StringUtils;
+import org.min.watergap.piping.thread.SingleThreadWorkGroup;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -28,35 +27,34 @@ import java.util.Map;
  *
  * @Create by metaX.h on 2021/11/10 23:16
  */
-public class RdbmsDBStructPumper extends RdbmsDataPumper {
+public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
     private static final Logger LOG = LogManager.getLogger(RdbmsDBStructPumper.class);
 
     @Override
     public void pump() throws WaterGapException {
         // step 0: add start flag
         startStage();
-        // step 1: get all table schema into localstorage
+        // step 1: get all table schema into local db
         extractDBSchema();
         // step 2: get ack to extract table
-        runPumpWork(this::ackAndRunNextStage);
+        startConsumers();
     }
 
-    protected void ackAndRunNextStage() {
-        for (;;) {
-            try {
-                PipingData pipingData = ackPiping.take();
+    private void startConsumers() {
+        for (SingleThreadWorkGroup worker : workGroups) {
+            worker = new SingleThreadWorkGroup((pipingData) -> {
                 switch (pipingData.getType()) {
                     case SCHEMA:/* 数据库建立好之后，开始迁移表结构 */
-                        runPumpWork(() -> {
-                            try {
-                                SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
-                                showAllTables(schemaData.getName());
-                            } catch (SQLException e) {
-                                LOG.error("execute pump schema data from source error", e);
-                            } catch (InterruptedException e) {
-                                LOG.error("execute pump schema interrupt error", e);
-                            }
-                        });
+                        try {
+                            SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
+                            showAllTables(schemaData.getName());
+                        } catch (SQLException e) {
+                            LOG.error("execute pump schema data from source error", e);
+                            return 0;
+                        } catch (InterruptedException e) {
+                            LOG.error("execute pump schema interrupt error", e);
+                            return 0;
+                        }
                         break;
 //                    case TABLE: /* 表结构迁移完成之后开始迁移数据 */
 //                        runPumpWork(() -> {
@@ -69,22 +67,21 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
 //                        });
 //                        break;
                     case FULL_DATA: /* 数据更新以后回调,进入下一part提取 */
-                        runPumpWork(() -> {
-                            FullTableDataBasePipingData tableDataBasePipingData = (FullTableDataBasePipingData) pipingData;
-                            try {
-                                startNextDataPumper(tableDataBasePipingData);
-                            } catch (InterruptedException e) {
-                                LOG.error("start pump data interrupt error", e);
-                            } catch (SQLException e) {
-                                LOG.error("get source table data error", e);
-                            }
-                        });
+                        FullTableDataBasePipingData tableDataBasePipingData = (FullTableDataBasePipingData) pipingData;
+                        try {
+                            startNextDataPumper(tableDataBasePipingData);
+                        } catch (InterruptedException e) {
+                            LOG.error("start pump data interrupt error", e);
+                            return 0;
+                        } catch (SQLException e) {
+                            LOG.error("get source table data error", e);
+                            return 0;
+                        }
                         break;
                 }
-            } catch (InterruptedException interruptedException) {
-                LOG.error("poll data from ack piping error", interruptedException);
-            }
-
+                return 1;
+            }, waterGapContext.getAckPiping());
+            worker.start();
         }
     }
 
@@ -101,7 +98,7 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
                 contain.addVal(map);
             }
             tableData.setContain(contain);
-            structPiping.put(tableData);
+            waterGapContext.getPumpPiping().put(tableData);
         });
     }
 
@@ -143,8 +140,8 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
                 TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
                 pipingData.setIdentical(isIdentical);
                 assembleTableStruct(pipingData);
-                LocalDataSaveTool.save(pipingData);
-                structPiping.put(pipingData);
+                fullTableStatusService.create(pipingData);
+                waterGapContext.getPumpPiping().put(pipingData);
             }
         });
     }
@@ -275,15 +272,11 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
     }
 
     private void extractDBSchema() {
-        MigrateStageORM migrateStageORM = migrateStageService.queryOne();
-        if (!migrateStageORM.getStage().equals(MigrateStageORM.StageEnum.START)) {
-            return;
-        }
         List<PipingData> pipingDataList = null;
         try {
             pipingDataList = getAllSchemaStructs();
             pipingDataList = filterPipData(pipingDataList);
-            LOG.info("### Schema Struct Num is {}", pipingDataList.size());
+            LOG.info("schema struct num is {}", pipingDataList.size());
         } catch (Exception e) {
             throw new WaterGapException("show table struct error", e);
         }
@@ -292,15 +285,17 @@ public class RdbmsDBStructPumper extends RdbmsDataPumper {
                 SchemaStructBasePipingData schemaStructData = (SchemaStructBasePipingData) schemaStruct;
                 SchemaStatusORM schemaStatusORM = schemaStatusService.queryOne(schemaStructData.getSchemaName());
                 if (schemaStatusORM == null) { // 还没有初始化
-                    schemaStatusService.update(schemaStructData.getSchemaName(), MigrateStageService.LocalStorageStatus.INIT.getStatus());
-                    structPiping.put(schemaStruct);
+                    schemaStatusService.create(schemaStructData.getSchemaName(), MigrateStageService.LocalStorageStatus.INIT.getStatus());
+                    try {
+                        waterGapContext.getPumpPiping().put(schemaStruct);
+                    } catch (InterruptedException e) {
+                        throw new WaterGapException("put in pump error", e);
+                    }
                 } else {
-                    LOG.info("#### Query Schema Struct {}", schemaStatusORM);
+                    LOG.info("query schema struct {}", schemaStatusORM);
                 }
             });
         }
-        // change stage
-        migrateStageService.updateStage(MigrateStageORM.StageEnum.SCHEMA_MIGRATED.toString());
     }
 
     protected List<PipingData> filterPipData(List<PipingData> pipingDataList) {

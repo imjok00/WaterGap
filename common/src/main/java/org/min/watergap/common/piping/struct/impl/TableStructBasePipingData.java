@@ -1,8 +1,5 @@
 package org.min.watergap.common.piping.struct.impl;
 
-import org.min.watergap.common.local.storage.entity.AbstractLocalStorageEntity;
-import org.min.watergap.common.local.storage.entity.FullTableStatus;
-import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.rdbms.struct.StructType;
 
 import java.util.ArrayList;
@@ -107,27 +104,6 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
     @Override
     public StructType getType() {
         return StructType.TABLE;
-    }
-
-    @Override
-    public void onCopy(PipingData data) {
-
-    }
-
-    @Override
-    public String generateQuerySQL() {
-        return new FullTableStatus(getSchemaName(), getTableName()).generateQueryOne();
-    }
-
-    @Override
-    public String generateInsertSQL() {
-        return new FullTableStatus(getSchemaName(), getTableName(), getSourceCreateSql(),
-                AbstractLocalStorageEntity.LocalStorageStatus.INIT.getStatus()).generateInsert();
-    }
-
-    @Override
-    public String generateUpdateSQL(Map<String, Object> objectMap) {
-        return new FullTableStatus(getSchemaName(), getTableName()).generateUpdate(objectMap);
     }
 
     public static class Column {
