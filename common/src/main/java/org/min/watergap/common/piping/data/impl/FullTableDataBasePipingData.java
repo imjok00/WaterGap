@@ -57,7 +57,7 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
         Map<String, Object> oneColumnMap = contain.getValMapList().get(contain.getValMapList().size() - 1);
         Map<String, String> keyValMap = new HashMap<>();
         primaryKeys.forEach(column -> {
-            keyValMap.put(column.getColumnName(), String.valueOf(oneColumnMap.get(keyValMap)));
+            keyValMap.put(column.getColumnName(), String.valueOf(oneColumnMap.get(column.getColumnName())));
         });
         Position position = new RdbmsFullPosition(keyValMap);
         setPosition(position);
@@ -94,6 +94,10 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
 
         public void setColumns(List<Column> columns) {
             this.columns = columns;
+        }
+
+        public boolean isEmpty() {
+            return CollectionsUtils.isEmpty(valMapList);
         }
     }
 

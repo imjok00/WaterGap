@@ -17,7 +17,7 @@ public class MysqlStructConvertor implements StructConvertor {
         switch (pipingData.getType()) {
             case SCHEMA:
                 SchemaStructBasePipingData schemaStruct = (SchemaStructBasePipingData) pipingData;
-                return String.format(CREATE_DATABASE_TEMPLATE, schemaStruct.getName());
+                return String.format(CREATE_DATABASE_TEMPLATE, schemaStruct.getSchemaName());
             case TABLE:
                 TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
                 // 表结构构建

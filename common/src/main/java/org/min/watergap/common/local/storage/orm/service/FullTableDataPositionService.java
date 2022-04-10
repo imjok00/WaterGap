@@ -27,6 +27,7 @@ public class FullTableDataPositionService {
 
     public void create(FullTableDataPositionORM fullTableDataPositionORM) {
         try {
+            fullTableDataPositionORM.setStatus(MigrateStageService.LocalStorageStatus.INIT.getStatus());
             dao.create(fullTableDataPositionORM);
         } catch (SQLException e) {
             LOG.error("create full position error, data : {} ", fullTableDataPositionORM, e);
@@ -37,6 +38,21 @@ public class FullTableDataPositionService {
         try {
             UpdateBuilder updateBuilder = this.dao.updateBuilder();
             updateBuilder.updateColumnValue("position", data.getPosition())
+                    .where().eq("schemaName", data.getSchemaName())
+                    .and().eq("tableName", data.getTableName());
+            return updateBuilder.update();
+        } catch (SQLException e) {
+            LOG.error("update table struct fail schema: {}, table : {}, position:{}",
+                    data.getSchemaName(), data.getTableName(),
+                    data.getPosition(), e);
+        }
+        return 0;
+    }
+
+    public int finishDataFull(FullTableDataBasePipingData data) {
+        try {
+            UpdateBuilder updateBuilder = this.dao.updateBuilder();
+            updateBuilder.updateColumnValue("status", MigrateStageService.LocalStorageStatus.COMPLETE.getStatus())
                     .where().eq("schemaName", data.getSchemaName())
                     .and().eq("tableName", data.getTableName());
             return updateBuilder.update();

@@ -11,14 +11,20 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "FULL_TABLE_DATA")
 public class FullTableDataPositionORM {
 
-    @DatabaseField(id=true)
+    @DatabaseField(columnName = "id", generatedId = true)
     private Long id;
 
+    @DatabaseField(columnName="schemaName")
     private String schemaName;
 
+    @DatabaseField(columnName="tableName")
     private String tableName;
 
+    @DatabaseField(columnName="position")
     private String position;
+
+    @DatabaseField(columnName="status")
+    private int status;
 
     public FullTableDataPositionORM() {
     }
@@ -59,5 +65,13 @@ public class FullTableDataPositionORM {
 
     public void setPosition(String position) {
         this.position = position;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }

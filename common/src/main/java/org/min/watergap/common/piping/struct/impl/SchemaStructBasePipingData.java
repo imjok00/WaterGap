@@ -9,15 +9,11 @@ import org.min.watergap.common.rdbms.struct.StructType;
  */
 public class SchemaStructBasePipingData extends RdbmsStructBasePipingData {
 
-    private String name;
 
     public SchemaStructBasePipingData(String name) {
-        this.name = name;
+        setSchemaName(name);
     }
 
-    public String getName() {
-        return name;
-    }
 
     @Override
     public StructType getType() {
@@ -27,7 +23,7 @@ public class SchemaStructBasePipingData extends RdbmsStructBasePipingData {
     @Override
     public String toString() {
         return "SchemaStructBasePipingData{" +
-                "name='" + name + '\'' +
+                "name='" + getSchemaName() + '\'' +
                 '}';
     }
 }

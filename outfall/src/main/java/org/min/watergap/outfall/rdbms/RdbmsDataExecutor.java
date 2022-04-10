@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.datasource.DataSourceWrapper;
+import org.min.watergap.common.enums.PumpExceptionEnum;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
 import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
@@ -23,12 +24,17 @@ public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements Data
     protected DataSourceWrapper dataSource;
 
     @Override
-    public int execute(String schema, String sql, PipDataAck callback){
+    public int execute(String schema, String sql, PipDataAck callback) throws WaterGapException{
         try {
             return executeUpdate(schema, sql, callback);
         } catch (Exception e) {
-            LOG.error("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
-            return 0;
+            if (e.getMessage().contains(PumpExceptionEnum.DATABASE_EXISTS.getMsg())) {
+                LOG.warn("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
+                throw new WaterGapException(PumpExceptionEnum.DATABASE_EXISTS);
+            } else {
+                LOG.error("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
+                throw new WaterGapException("message=" + e.getMessage(), e);
+            }
         }
     }
 

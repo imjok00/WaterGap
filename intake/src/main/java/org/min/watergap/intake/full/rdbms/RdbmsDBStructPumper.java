@@ -47,7 +47,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                     case SCHEMA:/* 数据库建立好之后，开始迁移表结构 */
                         try {
                             SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
-                            showAllTables(schemaData.getName());
+                            showAllTables(schemaData.getSchemaName());
                         } catch (SQLException e) {
                             LOG.error("execute pump schema data from source error", e);
                             return 0;
@@ -97,8 +97,14 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                 }
                 contain.addVal(map);
             }
-            tableData.setContain(contain);
-            waterGapContext.getPumpPiping().put(tableData);
+            if (contain.isEmpty()) {
+                // 全量完成
+                fullTableDataPositionService.finishDataFull(tableData);
+            } else {
+                tableData.setContain(contain);
+                waterGapContext.getPumpPiping().put(tableData);
+            }
+
         });
     }
 

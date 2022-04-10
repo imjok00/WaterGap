@@ -61,6 +61,6 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
 
     @Override
     public void destroy() {
-
+        super.destroy();
     }
 }

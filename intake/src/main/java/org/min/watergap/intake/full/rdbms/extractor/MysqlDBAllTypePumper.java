@@ -28,7 +28,7 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
     protected List<PipingData> filterPipData(List<PipingData> pipingDataList) {
         return pipingDataList.stream().filter(pipingData ->
                 StructType.SCHEMA.equals(pipingData.getType())
-                        && !SYSTEM_EXCLUDE_SCHEMAS.contains(((SchemaStructBasePipingData) pipingData).getName())
+                        && !SYSTEM_EXCLUDE_SCHEMAS.contains(((SchemaStructBasePipingData) pipingData).getSchemaName())
         ).collect(Collectors.toList());
     }
 
@@ -42,7 +42,6 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
         selectSQL.append(" FROM ").append(tableData.getTableName());
 
         if (CollectionsUtils.isNotEmpty(tableData.getIndexInfo().getPrimaryKeys()) && !tableData.getPosition().isFirst()) {
-            selectSQL.append(" WHERE ");
             selectSQL.append(generateSearchKeys(tableData.getIndexInfo().getPrimaryKeys(), tableData.getPosition()));
         }
         selectSQL.append(" LIMIT ").append(sqlSelectLimit);

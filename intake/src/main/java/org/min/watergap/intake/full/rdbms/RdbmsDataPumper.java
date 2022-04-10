@@ -2,6 +2,7 @@ package org.min.watergap.intake.full.rdbms;
 
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.local.storage.orm.MigrateStageORM;
+import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionService;
 import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
@@ -23,6 +24,7 @@ public abstract class RdbmsDataPumper extends DBPumper {
 
     // 存储在本地的基础对象
     protected FullTableStatusService fullTableStatusService;
+    protected FullTableDataPositionService fullTableDataPositionService;
     protected SchemaStatusService schemaStatusService;
     protected MigrateStageService migrateStageService;
     protected SingleThreadWorkGroup[] workGroups;
@@ -33,6 +35,7 @@ public abstract class RdbmsDataPumper extends DBPumper {
         fullTableStatusService = new FullTableStatusService();
         schemaStatusService = new SchemaStatusService();
         migrateStageService = new MigrateStageService();
+        fullTableDataPositionService = new FullTableDataPositionService();
         workGroups = new SingleThreadWorkGroup[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
     }
 

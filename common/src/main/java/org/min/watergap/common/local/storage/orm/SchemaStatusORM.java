@@ -11,11 +11,13 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "SCHEMA_STATUS")
 public class SchemaStatusORM {
 
-    @DatabaseField(id=true)
+    @DatabaseField(columnName = "id", generatedId = true)
     private Long id;
 
+    @DatabaseField(columnName="schemaName")
     private String schemaName;
 
+    @DatabaseField(columnName="status")
     private int status;
 
     public SchemaStatusORM() {

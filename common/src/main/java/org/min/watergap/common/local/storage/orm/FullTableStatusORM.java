@@ -11,17 +11,22 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "FULL_TABLE_STATUS")
 public class FullTableStatusORM {
 
-    @DatabaseField(id=true)
+    @DatabaseField(columnName = "id", generatedId = true)
     private Long id;
 
+    @DatabaseField(columnName="schemaName")
     private String schemaName;
 
+    @DatabaseField(columnName="tableName")
     private String tableName;
 
+    @DatabaseField(columnName="sourceCreateSql")
     private String sourceCreateSql;
 
+    @DatabaseField(columnName="pipingFields")
     private String pipingFields;
 
+    @DatabaseField(columnName="status")
     private int status;
 
     public FullTableStatusORM() {

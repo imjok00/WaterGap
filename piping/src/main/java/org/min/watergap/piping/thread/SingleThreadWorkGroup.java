@@ -27,11 +27,11 @@ public class SingleThreadWorkGroup extends AbstractWaterGapLifeCycle {
                 PipingData pipingData = null;
                 try {
                     pipingData = piping.take();
-                } catch (InterruptedException e) {
+                    executor.execute(pipingData);
+                } catch (Exception e) {
                     LOG.error("work thread take interrupt, try to stop", e);
                     stop();
                 }
-                executor.execute(pipingData);
             }
         });
     }
