@@ -159,7 +159,6 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
             }
         });
         extractTableColumns(pipingData);
-        extractTablePrimaryKeys(pipingData);
         extractTableUniqueKeys(pipingData);
         extractTableNormalKeys(pipingData);
         extractTableForeignKes(pipingData);
@@ -173,13 +172,17 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                         pipingData.getTableName(), null);
         ) {
             while (rs.next()) {
-
                 String columnName = rs.getString("COLUMN_NAME");
                 // SQL type from java.sql.Types
                 int columnType = rs.getInt("DATA_TYPE");
                 String typeName = rs.getString("TYPE_NAME");
                 columnType = convertSqlType(columnType, typeName);
-                pipingData.addColumn(new TableStructBasePipingData.Column(columnName, columnType, typeName));
+//                int columnSize = rs.getInt("COLUMN_SIZE");
+//                int decimalDigits = rs.getInt("DECIMAL_DIGITS");
+//                int nullable = rs.getInt("NULLABLE");
+                TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName, columnType, typeName);
+                column.addColumnMetas(rs);
+                pipingData.addColumn(column);
             }
         }
     }
@@ -220,6 +223,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
             while (rs.next()) {
                 String columnName = rs.getString("COLUMN_NAME");
                 Integer keySeq = rs.getInt("KEY_SEQ");
+                String PK_NAME = rs.getString("PK_NAME");
                 pipingData.addPrimaryKeys(new TableStructBasePipingData.Column(columnName));
             }
         }
@@ -232,13 +236,73 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                         pipingData.getTableName(), true, false);
         ) {
             while (rs.next()) {
+                String tableName = rs.getString("TABLE_NAME");
                 String indexName = rs.getString("INDEX_NAME");
                 String columnName = rs.getString("COLUMN_NAME");
-                int indexType = rs.getInt("TYPE");
-                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
-                String ascOrDesc = rs.getString("ASC_OR_DESC");
-                pipingData.addUniqueKeys(indexName, new TableStructBasePipingData.Column(columnName));
+//                String nonUnique = rs.getString("NON_UNIQUE");
+//                String indexQualifier = rs.getString("INDEX_QUALIFIER");
+//                int indexType = rs.getInt("TYPE");
+//                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
+//                String ascOrDesc = rs.getString("ASC_OR_DESC");
+//                long cardinality = rs.getLong("CARDINALITY");
+
+                if ("primary".equals(indexName)) {
+                    TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName);
+                    column.addPrimaryMetas(rs);
+                    pipingData.addPrimaryKeys(column);
+
+                } else {
+                    TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName);
+                    column.addPrimaryMetas(rs);
+                    pipingData.addUniqueKeys(indexName, column);
+                }
+
+                /**
+                 * Indicates that this column contains table statistics that
+                 * are returned in conjunction with a table's index descriptions.
+                 * <P>
+                 * A possible value for column <code>TYPE</code> in the
+                 * <code>ResultSet</code> object returned by the method
+                 * <code>getIndexInfo</code>.
+                 */
+                short tableIndexStatistic = 0;
+
+                /**
+                 * Indicates that this table index is a clustered index.
+                 * <P>
+                 * A possible value for column <code>TYPE</code> in the
+                 * <code>ResultSet</code> object returned by the method
+                 * <code>getIndexInfo</code>.
+                 */
+                short tableIndexClustered = 1;
+
+                /**
+                 * Indicates that this table index is a hashed index.
+                 * <P>
+                 * A possible value for column <code>TYPE</code> in the
+                 * <code>ResultSet</code> object returned by the method
+                 * <code>getIndexInfo</code>.
+                 */
+                short tableIndexHashed    = 2;
+
+                /**
+                 * Indicates that this table index is not a clustered
+                 * index, a hashed index, or table statistics;
+                 * it is something other than these.
+                 * <P>
+                 * A possible value for column <code>TYPE</code> in the
+                 * <code>ResultSet</code> object returned by the method
+                 * <code>getIndexInfo</code>.
+                 */
+                short tableIndexOther     = 3;
+//                TYPE short => index type:
+//                tableIndexStatistic - this identifies table statistics that are returned in conjuction with a table's index descriptions
+//                tableIndexClustered - this is a clustered index
+//                tableIndexHashed - this is a hashed index
+//                tableIndexHashedIndexOther - this is some other style of index
+
             }
+            pipingData.findFullKey();
         }
     }
 
@@ -251,10 +315,12 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
             while (rs.next()) {
                 String indexName = rs.getString("INDEX_NAME");
                 String columnName = rs.getString("COLUMN_NAME");
-                int indexType = rs.getInt("TYPE");
-                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
-                String ascOrDesc = rs.getString("ASC_OR_DESC");
-                pipingData.addNormalKeys(indexName, new TableStructBasePipingData.Column(columnName));
+//                int indexType = rs.getInt("TYPE");
+//                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
+//                String ascOrDesc = rs.getString("ASC_OR_DESC");
+                TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName);
+                column.addNormalMetas(rs);
+                pipingData.addNormalKeys(indexName, column);
             }
         }
     }

@@ -2,10 +2,9 @@ package org.min.watergap.common.piping.struct.impl;
 
 import org.min.watergap.common.rdbms.struct.StructType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * 表结构中间对象
@@ -55,6 +54,28 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             this.indexInfo.setPrimaryKeys(new ArrayList<>());
         }
         this.indexInfo.getPrimaryKeys().add(column);
+    }
+
+    public void findFullKey() {
+        if (this.indexInfo.getPrimaryKeys() != null) {
+            Column maxColumn = this.indexInfo.getPrimaryKeys().get(0);
+            for(Column column : this.indexInfo.getPrimaryKeys()) {
+                if(column.updateFullKey(maxColumn.getCardinality())) {
+                    maxColumn = column;
+                }
+            }
+            maxColumn.setFullKey(true);
+        } else if (this.indexInfo.getUniqueKeys() != null) {
+            Column maxColumn = null;
+            for (String key : this.indexInfo.getUniqueKeys().keySet()) {
+                for(Column column : this.indexInfo.getUniqueKeys().get(key)) {
+                    if(column.updateFullKey(maxColumn.getCardinality())) {
+                        maxColumn = column;
+                    }
+                }
+            }
+            maxColumn.setFullKey(true);
+        }
     }
 
     public void addUniqueKeys(String keyName, Column column) {
@@ -107,9 +128,29 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
     }
 
     public static class Column {
+        // 是否作为全量查询的key
+        public static final String IS_FULL_KEY = "IS_FULL_KEY";
+        public static final String COLUMN_SIZE = "COLUMN_SIZE";
+        public static final String COLUMN_DECIMAL_DIGITS = "DECIMAL_DIGITS";
+        public static final String COLUMN_NULLABLE = "NULLABLE";
+        public static final String INDEXTYPE = "TYPE";
+        public static final String ORDINAL_POSITION = "ORDINAL_POSITION";
+        public static final String CARDINALITY = "CARDINALITY";
+        public static final String NON_UNIQUE = "NON_UNIQUE";
+        public static final String ASC_OR_DESC = "ASC_OR_DESC";
+
+        public static final List<String> PRIMARY_METAS = Arrays.asList(INDEXTYPE, ORDINAL_POSITION, CARDINALITY, NON_UNIQUE);
+
+        public static final List<String> NORMAL_METAS = Arrays.asList(INDEXTYPE, ORDINAL_POSITION, ASC_OR_DESC);
+
+        public static final List<String> COLUMN_METAS = Arrays.asList(COLUMN_SIZE, COLUMN_DECIMAL_DIGITS, COLUMN_NULLABLE);
+
         private String columnName;
         private int columnType;
         private String typeName;
+        private boolean isFullKey;
+
+        private HashMap<String, Object> columnMeta = new HashMap<>();
 
         public Column(String columnName, int columnType, String typeName) {
             this.columnName = columnName;
@@ -119,6 +160,35 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
         public Column(String columnName) {
             this.columnName = columnName;
+        }
+
+        public void addPrimaryMetas(ResultSet rs) throws SQLException {
+            for (String key : PRIMARY_METAS) {
+                columnMeta.put(key, rs.getObject(key));
+            }
+        }
+
+        public void addNormalMetas(ResultSet rs) throws SQLException {
+            for (String key : NORMAL_METAS) {
+                columnMeta.put(key, rs.getObject(key));
+            }
+        }
+
+        public void addColumnMetas(ResultSet rs) throws SQLException {
+            for (String key : COLUMN_METAS) {
+                columnMeta.put(key, rs.getObject(key));
+            }
+        }
+
+        public boolean updateFullKey(long maxCardinality) {
+            if((long) columnMeta.getOrDefault(CARDINALITY, 0L) > maxCardinality) {
+                return true;
+            }
+            return false;
+        }
+
+        public void addMeta(String key, Object val) {
+            columnMeta.put(key, val);
         }
 
         public String getColumnName() {
@@ -143,6 +213,58 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
         public void setTypeName(String typeName) {
             this.typeName = typeName;
+        }
+
+        public boolean isFullKey() {
+            return getBoolByDefault(IS_FULL_KEY, false);
+        }
+
+        public void setFullKey(boolean fullKey) {
+            isFullKey = fullKey;
+        }
+
+        public long getCardinality() {
+            return getLongByDefault(CARDINALITY, 0);
+        }
+
+        private int getIntByDefault(String key, int defaultVal) {
+            Object val = columnMeta.get(key);
+            if (val == null) {
+                return defaultVal;
+            }
+            return (int) val;
+        }
+
+        private int getLongByDefault(String key, int defaultVal) {
+            Object val = columnMeta.get(key);
+            if (val == null) {
+                return defaultVal;
+            }
+            return (int) val;
+        }
+
+        private String getStringByDefault(String key, String defVal) {
+            Object val = columnMeta.get(key);
+            if (val == null) {
+                return defVal;
+            }
+            return (String) val;
+        }
+
+        private boolean getBoolByDefault(String key, boolean defVal) {
+            Object val = columnMeta.get(key);
+            if (val == null) {
+                return defVal;
+            }
+            return (boolean) val;
+        }
+
+        public HashMap<String, Object> getColumnMeta() {
+            return columnMeta;
+        }
+
+        public void setColumnMeta(HashMap<String, Object> columnMeta) {
+            this.columnMeta = columnMeta;
         }
 
         @Override
