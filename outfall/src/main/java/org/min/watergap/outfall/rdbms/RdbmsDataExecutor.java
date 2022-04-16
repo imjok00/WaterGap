@@ -7,8 +7,8 @@ import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.enums.PumpExceptionEnum;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
-import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
 import java.sql.*;
 import java.util.List;
@@ -28,13 +28,8 @@ public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements Data
         try {
             return executeUpdate(schema, sql, callback);
         } catch (Exception e) {
-            if (e.getMessage().contains(PumpExceptionEnum.DATABASE_EXISTS.getMsg())) {
-                LOG.warn("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
-                throw new WaterGapException(PumpExceptionEnum.DATABASE_EXISTS);
-            } else {
-                LOG.error("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
-                throw new WaterGapException("message=" + e.getMessage(), e);
-            }
+            LOG.error("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
+            throw new WaterGapException("message=" + e.getMessage(), e);
         }
     }
 
@@ -167,7 +162,17 @@ public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements Data
             if (connection != null) {
                 connection.rollback();
             }
-            throw e;
+            if (e.getMessage().contains(PumpExceptionEnum.DATABASE_EXISTS.getMsg())) {
+                LOG.warn("## execute update sql error, schema : {} , sql : {}", schema, sql);
+                executeSucc = true;
+                result = 1;
+            } else if (e.getMessage().contains(PumpExceptionEnum.TABLE_EXISTS.getMsg())) {
+                LOG.warn("## execute update sql error, schema : {} , sql : {}", schema, sql);
+                executeSucc = true;
+                result = 1;
+            } else {
+                throw e;
+            }
         } finally {
             if (executeSucc) {
                 callback.callAck();

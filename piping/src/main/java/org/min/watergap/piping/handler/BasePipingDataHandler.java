@@ -3,7 +3,7 @@ package org.min.watergap.piping.handler;
 import com.lmax.disruptor.WorkHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.min.watergap.common.piping.PipingData;
+import org.min.watergap.piping.translator.PipingData;
 
 /**
  * 基础handler

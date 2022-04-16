@@ -6,15 +6,11 @@ import org.min.watergap.common.config.DatabaseType;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
-import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionService;
-import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
-import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
-import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
-import org.min.watergap.common.piping.PipingData;
-import org.min.watergap.common.piping.WaterGapPiping;
 import org.min.watergap.outfall.rdbms.DataExecutor;
 import org.min.watergap.outfall.rdbms.RdbmsDataExecutor;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
+import org.min.watergap.piping.translator.PipingData;
+import org.min.watergap.piping.translator.WaterGapPiping;
 
 public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implements Drainer {
     private static final Logger LOG = LogManager.getLogger(OutFallDrainer.class);
@@ -27,13 +23,7 @@ public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implement
 
     protected WaterGapPiping ackPiping;
 
-    protected FullTableStatusService fullTableStatusService;
-
-    protected FullTableDataPositionService fullTableDataPositionService;
-
-    protected MigrateStageService migrateStageService;
-
-    protected SchemaStatusService schemaStatusService;
+    protected WaterGapPiping pumpPiping;
 
     protected SingleThreadWorkGroup[] singleThreadWorkGroups;
 
@@ -47,12 +37,13 @@ public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implement
     }
 
     private void startRunDrainer() {
-        for (SingleThreadWorkGroup singleThreadWorkGroup : singleThreadWorkGroups) {
-            singleThreadWorkGroup = new SingleThreadWorkGroup(pipingData -> {
+        for (int i = 0; i < singleThreadWorkGroups.length; i++) {
+            singleThreadWorkGroups[i] = new SingleThreadWorkGroup(pipingData -> {
                 doExecute(pipingData);
                 return 1;
-            }, waterGapContext.getPumpPiping());
-            singleThreadWorkGroup.start();
+            }, pumpPiping);
+            singleThreadWorkGroups[i].init(waterGapContext);
+            singleThreadWorkGroups[i].start();
         }
     }
 
@@ -64,6 +55,11 @@ public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implement
         }
     }
 
+    public void injectPiping(WaterGapPiping pumpPiping, WaterGapPiping ackPiping) {
+        this.pumpPiping = pumpPiping;
+        this.ackPiping = ackPiping;
+    }
+
 
     @Override
     public void init(WaterGapContext waterGapContext) {
@@ -71,12 +67,7 @@ public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implement
         dataExecutor = new RdbmsDataExecutor();
         ((AbstractWaterGapLifeCycle)dataExecutor).init(waterGapContext);
         targetDBType = waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType();
-        ackPiping = waterGapContext.getAckPiping();
         singleThreadWorkGroups = new SingleThreadWorkGroup[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
-        fullTableStatusService = new FullTableStatusService();
-        migrateStageService = new MigrateStageService();
-        schemaStatusService = new SchemaStatusService();
-        fullTableDataPositionService = new FullTableDataPositionService();
     }
 
     @Override

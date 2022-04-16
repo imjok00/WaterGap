@@ -5,22 +5,21 @@ import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.orm.SchemaStatusORM;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
-import org.min.watergap.common.piping.PipingData;
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
-import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
-import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.common.utils.StringUtils;
+import org.min.watergap.common.utils.ThreadLocalUtils;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
+import org.min.watergap.piping.translator.PipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
+import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 关系型数据库数据结构导出
@@ -32,7 +31,6 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
 
     @Override
     public void pump() throws WaterGapException {
-        // step 0: add start flag
         startStage();
         // step 1: get all table schema into local db
         extractDBSchema();
@@ -41,8 +39,8 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
     }
 
     private void startConsumers() {
-        for (SingleThreadWorkGroup worker : workGroups) {
-            worker = new SingleThreadWorkGroup((pipingData) -> {
+        for (int i = 0; i < workGroups.length; i++) {
+            workGroups[i] = new SingleThreadWorkGroup((pipingData) -> {
                 switch (pipingData.getType()) {
                     case SCHEMA:/* 数据库建立好之后，开始迁移表结构 */
                         try {
@@ -56,16 +54,6 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                             return 0;
                         }
                         break;
-//                    case TABLE: /* 表结构迁移完成之后开始迁移数据 */
-//                        runPumpWork(() -> {
-//                            TableStructBasePipingData tableStruct = (TableStructBasePipingData) pipingData;
-//                            try {
-//                                startDataPumper(tableStruct);
-//                            } catch (InterruptedException e) {
-//                                LOG.error("start pump data interrupt error", e);
-//                            }
-//                        });
-//                        break;
                     case FULL_DATA: /* 数据更新以后回调,进入下一part提取 */
                         FullTableDataBasePipingData tableDataBasePipingData = (FullTableDataBasePipingData) pipingData;
                         try {
@@ -80,33 +68,12 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                         break;
                 }
                 return 1;
-            }, waterGapContext.getAckPiping());
-            worker.start();
+            }, ackPiping);
+            workGroups[i].init(waterGapContext);
+            workGroups[i].start();
         }
     }
 
-    private void startNextDataPumper(FullTableDataBasePipingData tableData) throws InterruptedException, SQLException {
-        String selectSql = generateSelectSQL(tableData);
-        executeStreamQuery(tableData.getSchemaName(), selectSql, (resultSet) -> {
-            FullTableDataBasePipingData.ColumnValContain contain
-                    = new FullTableDataBasePipingData.ColumnValContain(tableData.getColumns());
-            while (resultSet.next()) {
-                Map<String, Object> map = new HashMap<>();
-                for (TableStructBasePipingData.Column column : tableData.getColumns()) {
-                    map.put(column.getColumnName(), convertSqlType(column, resultSet));
-                }
-                contain.addVal(map);
-            }
-            if (contain.isEmpty()) {
-                // 全量完成
-                fullTableDataPositionService.finishDataFull(tableData);
-            } else {
-                tableData.setContain(contain);
-                waterGapContext.getPumpPiping().put(tableData);
-            }
-
-        });
-    }
 
     /**
      * 存入所有的schema对象
@@ -146,8 +113,8 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                 TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
                 pipingData.setIdentical(isIdentical);
                 assembleTableStruct(pipingData);
-                fullTableStatusService.create(pipingData);
-                waterGapContext.getPumpPiping().put(pipingData);
+                ThreadLocalUtils.getFullTableStatusService().create(pipingData.getSchemaName(), pipingData.getTableName(), pipingData.getSourceCreateSql());
+                pumpPiping.put(pipingData);
             }
         });
     }
@@ -246,7 +213,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
 //                String ascOrDesc = rs.getString("ASC_OR_DESC");
 //                long cardinality = rs.getLong("CARDINALITY");
 
-                if ("primary".equals(indexName)) {
+                if ("PRIMARY".equalsIgnoreCase(indexName)) {
                     TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName);
                     column.addPrimaryMetas(rs);
                     pipingData.addPrimaryKeys(column);
@@ -265,7 +232,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                  * <code>ResultSet</code> object returned by the method
                  * <code>getIndexInfo</code>.
                  */
-                short tableIndexStatistic = 0;
+//                short tableIndexStatistic = 0;
 
                 /**
                  * Indicates that this table index is a clustered index.
@@ -274,7 +241,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                  * <code>ResultSet</code> object returned by the method
                  * <code>getIndexInfo</code>.
                  */
-                short tableIndexClustered = 1;
+//                short tableIndexClustered = 1;
 
                 /**
                  * Indicates that this table index is a hashed index.
@@ -283,7 +250,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                  * <code>ResultSet</code> object returned by the method
                  * <code>getIndexInfo</code>.
                  */
-                short tableIndexHashed    = 2;
+//                short tableIndexHashed    = 2;
 
                 /**
                  * Indicates that this table index is not a clustered
@@ -294,7 +261,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                  * <code>ResultSet</code> object returned by the method
                  * <code>getIndexInfo</code>.
                  */
-                short tableIndexOther     = 3;
+//                short tableIndexOther     = 3;
 //                TYPE short => index type:
 //                tableIndexStatistic - this identifies table statistics that are returned in conjuction with a table's index descriptions
 //                tableIndexClustered - this is a clustered index
@@ -355,17 +322,16 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
         if (CollectionsUtils.isNotEmpty(pipingDataList)) {
             pipingDataList.forEach(schemaStruct -> {
                 SchemaStructBasePipingData schemaStructData = (SchemaStructBasePipingData) schemaStruct;
-                SchemaStatusORM schemaStatusORM = schemaStatusService.queryOne(schemaStructData.getSchemaName());
+                SchemaStatusORM schemaStatusORM = ThreadLocalUtils.getSchemaStatusService().queryOne(schemaStructData.getSchemaName());
                 if (schemaStatusORM == null) { // 还没有初始化
-                    schemaStatusService.create(schemaStructData.getSchemaName(), MigrateStageService.LocalStorageStatus.INIT.getStatus());
-                    try {
-                        waterGapContext.getPumpPiping().put(schemaStruct);
-                    } catch (InterruptedException e) {
-                        throw new WaterGapException("put in pump error", e);
-                    }
-                } else {
-                    LOG.info("query schema struct {}", schemaStatusORM);
+                    ThreadLocalUtils.getSchemaStatusService().create(schemaStructData.getSchemaName(), MigrateStageService.LocalStorageStatus.INIT.getStatus());
                 }
+                try {
+                    pumpPiping.put(schemaStruct);
+                } catch (InterruptedException e) {
+                    throw new WaterGapException("put in pump error", e);
+                }
+                LOG.info("query schema struct {}", schemaStatusORM);
             });
         }
     }

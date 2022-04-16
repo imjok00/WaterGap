@@ -5,9 +5,9 @@ import com.lmax.disruptor.YieldingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.lmax.disruptor.util.DaemonThreadFactory;
-import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.piping.factory.PipingDataFactory;
 import org.min.watergap.piping.producer.PipingDataProducer;
+import org.min.watergap.piping.translator.PipingData;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -74,4 +74,15 @@ public class FullTableDataPositionORM {
     public void setStatus(int status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "FullTableDataPositionORM{" +
+                "id=" + id +
+                ", schemaName='" + schemaName + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", position='" + position + '\'' +
+                ", status=" + status +
+                '}';
+    }
 }

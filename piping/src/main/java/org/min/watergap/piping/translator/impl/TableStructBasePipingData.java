@@ -1,4 +1,4 @@
-package org.min.watergap.common.piping.struct.impl;
+package org.min.watergap.piping.translator.impl;
 
 import org.min.watergap.common.rdbms.struct.StructType;
 
@@ -69,6 +69,9 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             Column maxColumn = null;
             for (String key : this.indexInfo.getUniqueKeys().keySet()) {
                 for(Column column : this.indexInfo.getUniqueKeys().get(key)) {
+                    if (maxColumn == null) {
+                        maxColumn = column;
+                    }
                     if(column.updateFullKey(maxColumn.getCardinality())) {
                         maxColumn = column;
                     }
@@ -88,8 +91,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         List<Column> ukeys = this.indexInfo.getUniqueKeys().get(keyName);
         if (ukeys == null) {
             ukeys = new ArrayList<>();
+            this.indexInfo.getUniqueKeys().put(keyName, ukeys);
         }
         ukeys.add(column);
+
     }
 
     public void addNormalKeys(String keyName, Column column) {
@@ -102,9 +107,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         List<Column> ukeys = this.indexInfo.getNormalKeys().get(keyName);
         if (ukeys == null) {
             ukeys = new ArrayList<>();
+            this.indexInfo.getNormalKeys().put(keyName, ukeys);
         }
         ukeys.add(column);
-        this.indexInfo.getNormalKeys().put(keyName, ukeys);
+
     }
 
     public void addForeignKes(String keyName, Column column) {
@@ -117,9 +123,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         List<Column> ukeys = this.indexInfo.getForeignKes().get(keyName);
         if (ukeys == null) {
             ukeys = new ArrayList<>();
+            this.indexInfo.getForeignKes().put(keyName, ukeys);
         }
         ukeys.add(column);
-        this.indexInfo.getForeignKes().put(keyName, ukeys);
+
     }
 
     @Override
@@ -129,7 +136,6 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     public static class Column {
         // 是否作为全量查询的key
-        public static final String IS_FULL_KEY = "IS_FULL_KEY";
         public static final String COLUMN_SIZE = "COLUMN_SIZE";
         public static final String COLUMN_DECIMAL_DIGITS = "DECIMAL_DIGITS";
         public static final String COLUMN_NULLABLE = "NULLABLE";
@@ -216,7 +222,7 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         }
 
         public boolean isFullKey() {
-            return getBoolByDefault(IS_FULL_KEY, false);
+            return isFullKey;
         }
 
         public void setFullKey(boolean fullKey) {
@@ -235,12 +241,12 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             return (int) val;
         }
 
-        private int getLongByDefault(String key, int defaultVal) {
+        private long getLongByDefault(String key, int defaultVal) {
             Object val = columnMeta.get(key);
             if (val == null) {
                 return defaultVal;
             }
-            return (int) val;
+            return (long) val;
         }
 
         private String getStringByDefault(String key, String defVal) {
@@ -280,13 +286,13 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     public static class IndexInfo {
 
-        private List<TableStructBasePipingData.Column> primaryKeys;
+        private List<Column> primaryKeys;
 
-        private Map<String, List<TableStructBasePipingData.Column>> normalKeys;
+        private Map<String, List<Column>> normalKeys;
 
-        private Map<String, List<TableStructBasePipingData.Column>> uniqueKeys;
+        private Map<String, List<Column>> uniqueKeys;
 
-        private Map<String, List<TableStructBasePipingData.Column>> foreignKes;
+        private Map<String, List<Column>> foreignKes;
 
         public List<Column> getPrimaryKeys() {
             return primaryKeys;

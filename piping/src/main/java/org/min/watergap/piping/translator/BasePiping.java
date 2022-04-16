@@ -1,4 +1,4 @@
-package org.min.watergap.common.piping;
+package org.min.watergap.piping.translator;
 
 /**
  * 基础的传输通道
@@ -12,4 +12,5 @@ public interface BasePiping {
     PipingData poll(long timeout) throws InterruptedException;
 
     PipingData take() throws InterruptedException;
+
 }

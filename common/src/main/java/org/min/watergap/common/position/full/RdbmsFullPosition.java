@@ -51,4 +51,5 @@ public class RdbmsFullPosition implements Position {
         return positionMap == null || positionMap.isEmpty();
     }
 
+
 }

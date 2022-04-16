@@ -1,14 +1,17 @@
 package org.min.watergap.common.local.storage.orm.service;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.local.storage.OrmJdbcHelper;
 import org.min.watergap.common.local.storage.orm.FullTableDataPositionORM;
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
+import org.min.watergap.common.position.Position;
+import org.min.watergap.common.utils.CollectionsUtils;
 
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * 全量表数据迁移记录
@@ -34,33 +37,48 @@ public class FullTableDataPositionService {
         }
     }
 
-    public int updatePosition(FullTableDataBasePipingData data) {
+    public String queryLastPosition(String schema, String table) throws SQLException {
+        QueryBuilder queryBuilder = this.dao.queryBuilder();
+        queryBuilder.where().eq("schemaName", schema)
+                .and().eq("tableName", table);
+        List<FullTableDataPositionORM> list = queryBuilder.query();
+        if (CollectionsUtils.isNotEmpty(list)) {
+            return list.get(0).getPosition();
+        }
+        return null;
+    }
+
+    public int updatePosition(Position position, String schema, String table) {
         try {
             UpdateBuilder updateBuilder = this.dao.updateBuilder();
-            updateBuilder.updateColumnValue("position", data.getPosition())
-                    .where().eq("schemaName", data.getSchemaName())
-                    .and().eq("tableName", data.getTableName());
+            updateBuilder.updateColumnValue("position", position)
+                    .where().eq("schemaName", schema)
+                    .and().eq("tableName", table);
             return updateBuilder.update();
         } catch (SQLException e) {
             LOG.error("update table struct fail schema: {}, table : {}, position:{}",
-                    data.getSchemaName(), data.getTableName(),
-                    data.getPosition(), e);
+                    schema, table, position, e);
         }
         return 0;
     }
 
-    public int finishDataFull(FullTableDataBasePipingData data) {
+    public int finishDataFull(String schema, String table) {
         try {
             UpdateBuilder updateBuilder = this.dao.updateBuilder();
             updateBuilder.updateColumnValue("status", MigrateStageService.LocalStorageStatus.COMPLETE.getStatus())
-                    .where().eq("schemaName", data.getSchemaName())
-                    .and().eq("tableName", data.getTableName());
+                    .where().eq("schemaName", schema)
+                    .and().eq("tableName", table);
             return updateBuilder.update();
         } catch (SQLException e) {
-            LOG.error("update table struct fail schema: {}, table : {}, position:{}",
-                    data.getSchemaName(), data.getTableName(),
-                    data.getPosition(), e);
+            LOG.error("update table struct fail schema: {}, table : {}",
+                    schema, table, e);
         }
         return 0;
+    }
+
+    public boolean isAllComplete() throws SQLException {
+        QueryBuilder queryBuilder = this.dao.queryBuilder();
+        queryBuilder.where().ne("status",  MigrateStageService.LocalStorageStatus.COMPLETE.getStatus());
+        return 0 == queryBuilder.query().size();
     }
 }

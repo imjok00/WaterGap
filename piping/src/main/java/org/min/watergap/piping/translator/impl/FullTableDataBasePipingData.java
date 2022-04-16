@@ -1,6 +1,5 @@
-package org.min.watergap.common.piping.data.impl;
+package org.min.watergap.piping.translator.impl;
 
-import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.position.Position;
 import org.min.watergap.common.position.full.RdbmsFullPosition;
 import org.min.watergap.common.rdbms.struct.StructType;
@@ -21,6 +20,8 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
     private Position position;
 
     private ColumnValContain contain;
+
+    private boolean needInit;
 
     public FullTableDataBasePipingData(TableStructBasePipingData tableStructBasePipingData) {
         super(tableStructBasePipingData.getSchemaName(), tableStructBasePipingData.getTableName());
@@ -44,6 +45,14 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
         this.position = position;
     }
 
+    public void setNeedInit(boolean needInit) {
+        this.needInit = needInit;
+    }
+
+    public boolean isNeedInit() {
+        return needInit;
+    }
+
     public void setContain(ColumnValContain contain) {
         this.contain = contain;
 
@@ -57,7 +66,9 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
         Map<String, Object> oneColumnMap = contain.getValMapList().get(contain.getValMapList().size() - 1);
         Map<String, String> keyValMap = new HashMap<>();
         primaryKeys.forEach(column -> {
-            keyValMap.put(column.getColumnName(), String.valueOf(oneColumnMap.get(column.getColumnName())));
+            if (column.isFullKey()) {
+                keyValMap.put(column.getColumnName(), String.valueOf(oneColumnMap.get(column.getColumnName())));
+            }
         });
         Position position = new RdbmsFullPosition(keyValMap);
         setPosition(position);
@@ -108,7 +119,9 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
 
     @Override
     public String toString() {
-        return "FullTableDataBasePipingData{" +
+        return "{" +
+                "schema" + getSchemaName() +
+                "table" + getTableName() +
                 "position=" + position +
                 '}';
     }

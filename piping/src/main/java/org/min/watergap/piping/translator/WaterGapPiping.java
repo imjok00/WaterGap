@@ -1,4 +1,4 @@
-package org.min.watergap.common.piping;
+package org.min.watergap.piping.translator;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -32,4 +32,5 @@ public class WaterGapPiping implements BasePiping {
     public PipingData take() throws InterruptedException {
         return fSink.take();
     }
+
 }

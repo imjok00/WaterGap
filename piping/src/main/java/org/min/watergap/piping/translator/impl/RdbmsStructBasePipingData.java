@@ -1,4 +1,4 @@
-package org.min.watergap.common.piping.struct.impl;
+package org.min.watergap.piping.translator.impl;
 
 /**
  * 数据结构中间对象

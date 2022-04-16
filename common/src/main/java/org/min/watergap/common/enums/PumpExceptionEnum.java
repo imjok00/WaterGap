@@ -7,7 +7,8 @@ package org.min.watergap.common.enums;
  */
 public enum PumpExceptionEnum {
 
-    DATABASE_EXISTS(2001001, "database exists");
+    DATABASE_EXISTS(2001001, "database exists"),
+    TABLE_EXISTS(2001002, "already exists");
 
     PumpExceptionEnum(int code, String msg) {
         this.code = code;

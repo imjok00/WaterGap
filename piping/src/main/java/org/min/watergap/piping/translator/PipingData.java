@@ -1,4 +1,4 @@
-package org.min.watergap.common.piping;
+package org.min.watergap.piping.translator;
 
 import org.min.watergap.common.rdbms.struct.StructType;
 

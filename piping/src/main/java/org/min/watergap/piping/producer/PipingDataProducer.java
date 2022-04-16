@@ -1,7 +1,7 @@
 package org.min.watergap.piping.producer;
 
 import com.lmax.disruptor.RingBuffer;
-import org.min.watergap.common.piping.PipingData;
+import org.min.watergap.piping.translator.PipingData;
 
 /**
  * pipingdata 生产者封装

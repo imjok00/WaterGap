@@ -6,14 +6,19 @@ import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionSe
 import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
-import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
+import org.min.watergap.common.utils.StringUtils;
+import org.min.watergap.common.utils.ThreadLocalUtils;
 import org.min.watergap.intake.full.DBPumper;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
+import org.min.watergap.piping.translator.WaterGapPiping;
+import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 关系型数据库数据导出
@@ -22,21 +27,27 @@ import java.sql.Types;
  */
 public abstract class RdbmsDataPumper extends DBPumper {
 
-    // 存储在本地的基础对象
-    protected FullTableStatusService fullTableStatusService;
-    protected FullTableDataPositionService fullTableDataPositionService;
-    protected SchemaStatusService schemaStatusService;
-    protected MigrateStageService migrateStageService;
+    protected WaterGapPiping pumpPiping;
+    protected WaterGapPiping ackPiping;
     protected SingleThreadWorkGroup[] workGroups;
 
     @Override
     public void init(WaterGapContext waterGapContext) {
         super.init(waterGapContext);
-        fullTableStatusService = new FullTableStatusService();
-        schemaStatusService = new SchemaStatusService();
-        migrateStageService = new MigrateStageService();
-        fullTableDataPositionService = new FullTableDataPositionService();
+        initLocalService();
         workGroups = new SingleThreadWorkGroup[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
+    }
+
+    private void initLocalService() {
+        ThreadLocalUtils.set(FullTableStatusService.class.getName(), new FullTableStatusService());
+        ThreadLocalUtils.set(FullTableDataPositionService.class.getName(), new FullTableDataPositionService());
+        ThreadLocalUtils.set(SchemaStatusService.class.getName(), new SchemaStatusService());
+        ThreadLocalUtils.set(MigrateStageService.class.getName(), new MigrateStageService());
+    }
+
+    public void injectPiping(WaterGapPiping pumpPiping, WaterGapPiping ackPiping) {
+        this.pumpPiping = pumpPiping;
+        this.ackPiping = ackPiping;
     }
 
     @Override
@@ -51,10 +62,57 @@ public abstract class RdbmsDataPumper extends DBPumper {
 
     protected void startStage() {
         super.start();
-        MigrateStageORM migrateStageORM = migrateStageService.queryOne();
+        MigrateStageORM migrateStageORM = ThreadLocalUtils.getMigrateStageService().queryOne();
         if (migrateStageORM == null) {
-            migrateStageService.create();
+            ThreadLocalUtils.getMigrateStageService().create();
         }
+    }
+
+
+    protected void startNextDataPumper(FullTableDataBasePipingData tableData) throws InterruptedException, SQLException {
+        if (tableData.isNeedInit()) {
+            tryUpdatePosition(tableData);
+        }
+        String selectSql = generateSelectSQL(tableData);
+        executeStreamQuery(tableData.getSchemaName(), selectSql, (resultSet) -> {
+            FullTableDataBasePipingData.ColumnValContain contain
+                    = new FullTableDataBasePipingData.ColumnValContain(tableData.getColumns());
+            while (resultSet.next()) {
+                Map<String, Object> map = new HashMap<>();
+                for (TableStructBasePipingData.Column column : tableData.getColumns()) {
+                    map.put(column.getColumnName(), convertSqlType(column, resultSet));
+                }
+                contain.addVal(map);
+            }
+            if (contain.isEmpty()) {
+                // 全量完成
+                ThreadLocalUtils.getFullTableDataPositionService().finishDataFull(tableData.getSchemaName(), tableData.getTableName());
+                tryClose();
+            } else {
+                tableData.setContain(contain);
+                pumpPiping.put(tableData);
+            }
+
+        });
+    }
+
+    /**
+     * position不应低于本地存储position
+     */
+    protected void tryUpdatePosition(FullTableDataBasePipingData tableData) throws SQLException {
+        String positionStr = ThreadLocalUtils.getFullTableDataPositionService()
+                .queryLastPosition(tableData.getSchemaName(), tableData.getTableName());
+        if (StringUtils.isNotEmpty(positionStr)) {
+            tableData.getPosition().parse(positionStr);
+        }
+    }
+
+    protected boolean tryClose() throws SQLException {
+        if (ThreadLocalUtils.getFullTableDataPositionService().isAllComplete()) {
+            stop();
+            return true;
+        }
+        return false;
     }
 
     protected Object convertSqlType(TableStructBasePipingData.Column column, ResultSet resultSet) throws SQLException {

@@ -36,4 +36,8 @@ public class StringUtils {
         }
         return s1.toUpperCase().startsWith(s2.toUpperCase());
     }
+
+    public static boolean isNotEmpty(String str) {
+        return str != null && !str.isEmpty();
+    }
 }

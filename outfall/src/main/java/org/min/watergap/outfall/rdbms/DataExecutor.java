@@ -1,7 +1,7 @@
 package org.min.watergap.outfall.rdbms;
 
 import org.min.watergap.common.exception.WaterGapException;
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
 
 public interface DataExecutor {
 

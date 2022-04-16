@@ -1,6 +1,6 @@
-package org.min.watergap.common.piping.struct.impl;
+package org.min.watergap.piping.translator.impl;
 
-import org.min.watergap.common.piping.PipingData;
+import org.min.watergap.piping.translator.PipingData;
 
 /**
  * 传输对象

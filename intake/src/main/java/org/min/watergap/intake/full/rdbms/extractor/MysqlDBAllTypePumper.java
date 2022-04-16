@@ -2,14 +2,14 @@ package org.min.watergap.intake.full.rdbms.extractor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.min.watergap.common.piping.PipingData;
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
-import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
-import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.position.Position;
 import org.min.watergap.common.rdbms.struct.StructType;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.intake.full.rdbms.RdbmsDBStructPumper;
+import org.min.watergap.piping.translator.PipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
+import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,13 +53,10 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
         for (int i = 0, length = list.size(); i < length; i++) {
             TableStructBasePipingData.Column column = list.get(i);
-            whereSQL.append(column.getColumnName()).append(">").append(position.getVal(column.getColumnName()));
-
-            if (i == length - 1) {
-                orderBy.append(list.get(i).getColumnName()).append(" ASC");
-            } else {
-                whereSQL.append(" AND ");
-                orderBy.append(list.get(i).getColumnName()).append(" ASC,");
+            if (column.isFullKey()) {
+                whereSQL.append(column.getColumnName()).append(">").append(position.getVal(column.getColumnName()));
+                orderBy.append(column.getColumnName()).append(" ASC");
+                break;
             }
         }
         return whereSQL.append(orderBy).toString();
@@ -68,7 +65,7 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
 
     @Override
     public void destroy() {
-
+        super.destroy();
     }
 
 }

@@ -6,9 +6,12 @@ import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
 import org.min.watergap.common.lifecycle.WaterGapLifeCycle;
 import org.min.watergap.intake.Pumper;
+import org.min.watergap.intake.full.rdbms.RdbmsDataPumper;
 import org.min.watergap.intake.full.rdbms.extractor.MysqlDBAllTypePumper;
 import org.min.watergap.outfall.Drainer;
+import org.min.watergap.outfall.OutFallDrainer;
 import org.min.watergap.outfall.RdbmsOutFallDrainer;
+import org.min.watergap.piping.translator.WaterGapPiping;
 
 /**
  * 全量模式启动 <br/>
@@ -21,9 +24,11 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
 
     private Pumper fullPumper;
 
+    private WaterGapPiping pumpPiping;
+
     private Drainer fullDrainer;
 
-    private WaterGapContext waterGapContext;
+    private WaterGapPiping ackPiping;
 
     @Override
     public void init(WaterGapContext waterGapContext) {
@@ -40,7 +45,11 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
                 fullDrainer = new RdbmsOutFallDrainer();
                 break;
         }
+        pumpPiping = new WaterGapPiping();
+        ackPiping = new WaterGapPiping();
 
+        ((RdbmsDataPumper)fullPumper).injectPiping(pumpPiping, ackPiping);
+        ((OutFallDrainer)fullDrainer).injectPiping(pumpPiping, ackPiping);
         ((WaterGapLifeCycle)fullPumper).init(waterGapContext);
         ((WaterGapLifeCycle)fullDrainer).init(waterGapContext);
     }
@@ -60,18 +69,14 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
         while (pumpLife.isStart()) {
             Thread.sleep(1000); // sleep 1s
         }
-
-        WaterGapLifeCycle drainerLife = (WaterGapLifeCycle) fullDrainer;
-        while (drainerLife.isStart()) {
-            Thread.sleep(1000); // sleep 1s
-        }
     }
 
     @Override
     public void destroy() {
+        LOG.info("ready to destroy");
         super.stop();
         ((WaterGapLifeCycle) fullPumper).destroy();
-        ((WaterGapLifeCycle)fullDrainer).destroy();
+        ((WaterGapLifeCycle) fullDrainer).destroy();
     }
 
 }

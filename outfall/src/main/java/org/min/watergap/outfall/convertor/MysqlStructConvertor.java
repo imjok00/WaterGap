@@ -1,16 +1,16 @@
 package org.min.watergap.outfall.convertor;
 
-import org.min.watergap.common.piping.data.impl.FullTableDataBasePipingData;
-import org.min.watergap.common.piping.struct.impl.BasePipingData;
-import org.min.watergap.common.piping.struct.impl.SchemaStructBasePipingData;
-import org.min.watergap.common.piping.struct.impl.TableStructBasePipingData;
 import org.min.watergap.common.utils.StringUtils;
+import org.min.watergap.piping.translator.impl.BasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
+import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
 import java.util.stream.Collectors;
 
 public class MysqlStructConvertor implements StructConvertor {
 
-    private static final String CREATE_DATABASE_TEMPLATE = "CREATE DATABASE %s";
+    private static final String CREATE_DATABASE_TEMPLATE = "CREATE DATABASE `%s`";
 
     @Override
     public String convert(BasePipingData pipingData) {

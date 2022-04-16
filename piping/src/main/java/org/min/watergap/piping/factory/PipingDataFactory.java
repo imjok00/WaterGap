@@ -1,8 +1,8 @@
 package org.min.watergap.piping.factory;
 
 import com.lmax.disruptor.EventFactory;
-import org.min.watergap.common.piping.PipingData;
 import org.min.watergap.common.rdbms.struct.StructType;
+import org.min.watergap.piping.translator.PipingData;
 
 /**
  * 对象创建工厂

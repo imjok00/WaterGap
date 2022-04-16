@@ -1,5 +1,6 @@
 {
   "mode" : "ONLY_FULL",
+  "sqlLimit" : 2,
   "source" : {
     "dbType" : "MySQL",
     "ip" : "127.0.0.1",
