@@ -120,9 +120,9 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
     @Override
     public String toString() {
         return "{" +
-                "schema" + getSchemaName() +
-                "table" + getTableName() +
-                "position=" + position +
+                "schema=" + getSchemaName() +
+                "; table=" + getTableName() +
+                "; position=" + position +
                 '}';
     }
 }

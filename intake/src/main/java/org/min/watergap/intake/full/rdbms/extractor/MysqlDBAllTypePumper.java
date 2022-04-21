@@ -11,6 +11,7 @@ import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
 import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,6 +62,14 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
         }
         return whereSQL.append(orderBy).toString();
 
+    }
+
+    protected void extractTableOption(TableStructBasePipingData pipingData) throws SQLException, InterruptedException {
+        executeQuery("information_schema", "SELECT * from tables where TABLE_NAME = '" + pipingData.getTableName() + "'", resultSet->{
+            while (resultSet.next()) {
+                pipingData.addTableOption(TableStructBasePipingData.TABLE_OPTION_COMMENT, resultSet.getString("TABLE_COMMENT"));
+            }
+        });
     }
 
     @Override

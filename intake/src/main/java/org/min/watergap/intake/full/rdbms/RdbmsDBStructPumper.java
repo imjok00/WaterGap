@@ -126,9 +126,10 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
             }
         });
         extractTableColumns(pipingData);
-        extractTableUniqueKeys(pipingData);
+        //extractTableUniqueKeys(pipingData);
         extractTableNormalKeys(pipingData);
         extractTableForeignKes(pipingData);
+        extractTableOption(pipingData);
     }
 
     private void extractTableColumns(TableStructBasePipingData pipingData) throws SQLException {
@@ -179,100 +180,6 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
         return columnType;
     }
 
-
-
-    private void extractTablePrimaryKeys(TableStructBasePipingData pipingData) throws SQLException {
-        try(
-                Connection connection = dataSource.getDataSource().getConnection();
-                ResultSet rs = connection.getMetaData().getPrimaryKeys(pipingData.getSchemaName(), pipingData.getSchemaName(),
-                        pipingData.getTableName());
-        ) {
-            while (rs.next()) {
-                String columnName = rs.getString("COLUMN_NAME");
-                Integer keySeq = rs.getInt("KEY_SEQ");
-                String PK_NAME = rs.getString("PK_NAME");
-                pipingData.addPrimaryKeys(new TableStructBasePipingData.Column(columnName));
-            }
-        }
-    }
-
-    private void extractTableUniqueKeys(TableStructBasePipingData pipingData) throws SQLException {
-        try(
-                Connection connection = dataSource.getDataSource().getConnection();
-                ResultSet rs = connection.getMetaData().getIndexInfo(pipingData.getSchemaName(), pipingData.getSchemaName(),
-                        pipingData.getTableName(), true, false);
-        ) {
-            while (rs.next()) {
-                String tableName = rs.getString("TABLE_NAME");
-                String indexName = rs.getString("INDEX_NAME");
-                String columnName = rs.getString("COLUMN_NAME");
-//                String nonUnique = rs.getString("NON_UNIQUE");
-//                String indexQualifier = rs.getString("INDEX_QUALIFIER");
-//                int indexType = rs.getInt("TYPE");
-//                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
-//                String ascOrDesc = rs.getString("ASC_OR_DESC");
-//                long cardinality = rs.getLong("CARDINALITY");
-
-                if ("PRIMARY".equalsIgnoreCase(indexName)) {
-                    TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName);
-                    column.addPrimaryMetas(rs);
-                    pipingData.addPrimaryKeys(column);
-
-                } else {
-                    TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName);
-                    column.addPrimaryMetas(rs);
-                    pipingData.addUniqueKeys(indexName, column);
-                }
-
-                /**
-                 * Indicates that this column contains table statistics that
-                 * are returned in conjunction with a table's index descriptions.
-                 * <P>
-                 * A possible value for column <code>TYPE</code> in the
-                 * <code>ResultSet</code> object returned by the method
-                 * <code>getIndexInfo</code>.
-                 */
-//                short tableIndexStatistic = 0;
-
-                /**
-                 * Indicates that this table index is a clustered index.
-                 * <P>
-                 * A possible value for column <code>TYPE</code> in the
-                 * <code>ResultSet</code> object returned by the method
-                 * <code>getIndexInfo</code>.
-                 */
-//                short tableIndexClustered = 1;
-
-                /**
-                 * Indicates that this table index is a hashed index.
-                 * <P>
-                 * A possible value for column <code>TYPE</code> in the
-                 * <code>ResultSet</code> object returned by the method
-                 * <code>getIndexInfo</code>.
-                 */
-//                short tableIndexHashed    = 2;
-
-                /**
-                 * Indicates that this table index is not a clustered
-                 * index, a hashed index, or table statistics;
-                 * it is something other than these.
-                 * <P>
-                 * A possible value for column <code>TYPE</code> in the
-                 * <code>ResultSet</code> object returned by the method
-                 * <code>getIndexInfo</code>.
-                 */
-//                short tableIndexOther     = 3;
-//                TYPE short => index type:
-//                tableIndexStatistic - this identifies table statistics that are returned in conjuction with a table's index descriptions
-//                tableIndexClustered - this is a clustered index
-//                tableIndexHashed - this is a hashed index
-//                tableIndexHashedIndexOther - this is some other style of index
-
-            }
-            pipingData.findFullKey();
-        }
-    }
-
     private void extractTableNormalKeys(TableStructBasePipingData pipingData) throws SQLException {
         try(
                 Connection connection = dataSource.getDataSource().getConnection();
@@ -286,8 +193,14 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
 //                int ordinalPosition = rs.getInt("ORDINAL_POSITION");
 //                String ascOrDesc = rs.getString("ASC_OR_DESC");
                 TableStructBasePipingData.Column column = new TableStructBasePipingData.Column(columnName);
-                column.addNormalMetas(rs);
-                pipingData.addNormalKeys(indexName, column);
+                column.addIndexMetas(rs);
+                if ("PRIMARY".equalsIgnoreCase(indexName)) {
+                    pipingData.addPrimaryKeys(column);
+                } else if ("false".equals(rs.getString("NON_UNIQUE"))) {
+                    pipingData.addUniqueKeys(indexName, column);
+                } else {
+                    pipingData.addNormalKeys(indexName, column);
+                }
             }
         }
     }
@@ -309,6 +222,8 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
             }
         }
     }
+
+    protected abstract void extractTableOption(TableStructBasePipingData pipingData) throws SQLException, InterruptedException;
 
     private void extractDBSchema() {
         List<PipingData> pipingDataList = null;

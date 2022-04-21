@@ -12,14 +12,18 @@ import java.util.*;
  * @Create by metaX.h on 2022/2/26 9:03
  */
 public class TableStructBasePipingData extends RdbmsStructBasePipingData {
+    public static final String TABLE_OPTION_COMMENT = "COMMENT";
 
     private List<Column> columns;
 
     private IndexInfo indexInfo;
 
+    private Map<String, String> tableOptions;
+
     public TableStructBasePipingData(String schemaName, String tableName) {
         setSchemaName(schemaName);
         setTableName(tableName);
+        tableOptions = new HashMap<>();
     }
 
     public List<Column> getColumns() {
@@ -54,6 +58,14 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             this.indexInfo.setPrimaryKeys(new ArrayList<>());
         }
         this.indexInfo.getPrimaryKeys().add(column);
+    }
+
+    public void addTableOption(String key, String val) {
+        this.tableOptions.put(key, val);
+    }
+
+    public String getTableOption(String key) {
+        return this.tableOptions.get(key) == null ? "" : this.tableOptions.get(key);
     }
 
     public void findFullKey() {
@@ -138,18 +150,21 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         // 是否作为全量查询的key
         public static final String COLUMN_SIZE = "COLUMN_SIZE";
         public static final String COLUMN_DECIMAL_DIGITS = "DECIMAL_DIGITS";
-        public static final String COLUMN_NULLABLE = "NULLABLE";
-        public static final String INDEXTYPE = "TYPE";
-        public static final String ORDINAL_POSITION = "ORDINAL_POSITION";
-        public static final String CARDINALITY = "CARDINALITY";
-        public static final String NON_UNIQUE = "NON_UNIQUE";
-        public static final String ASC_OR_DESC = "ASC_OR_DESC";
+        public static final String COLUMN_IS_NULLABLE = "IS_NULLABLE";
+        public static final String COLUMN_IS_AUTOINCREMENT = "IS_AUTOINCREMENT";
+        public static final String COLUMN_REMARKS = "REMARKS";
 
-        public static final List<String> PRIMARY_METAS = Arrays.asList(INDEXTYPE, ORDINAL_POSITION, CARDINALITY, NON_UNIQUE);
 
-        public static final List<String> NORMAL_METAS = Arrays.asList(INDEXTYPE, ORDINAL_POSITION, ASC_OR_DESC);
+        // index
+        public static final String INDEX_TYPE = "TYPE";
+        public static final String INDEX_ORDINAL_POSITION = "ORDINAL_POSITION";
+        public static final String INDEX_CARDINALITY = "CARDINALITY";
+        public static final String INDEX_NON_UNIQUE = "NON_UNIQUE";
+        public static final String INDEX_ASC_OR_DESC = "ASC_OR_DESC";
 
-        public static final List<String> COLUMN_METAS = Arrays.asList(COLUMN_SIZE, COLUMN_DECIMAL_DIGITS, COLUMN_NULLABLE);
+        public static final List<String> INDEX_METAS = Arrays.asList(INDEX_TYPE, INDEX_ORDINAL_POSITION, INDEX_ASC_OR_DESC, INDEX_CARDINALITY, INDEX_NON_UNIQUE);
+
+        public static final List<String> COLUMN_METAS = Arrays.asList(COLUMN_SIZE, COLUMN_DECIMAL_DIGITS, COLUMN_IS_NULLABLE, COLUMN_IS_AUTOINCREMENT, COLUMN_REMARKS);
 
         private String columnName;
         private int columnType;
@@ -168,14 +183,8 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             this.columnName = columnName;
         }
 
-        public void addPrimaryMetas(ResultSet rs) throws SQLException {
-            for (String key : PRIMARY_METAS) {
-                columnMeta.put(key, rs.getObject(key));
-            }
-        }
-
-        public void addNormalMetas(ResultSet rs) throws SQLException {
-            for (String key : NORMAL_METAS) {
+        public void addIndexMetas(ResultSet rs) throws SQLException {
+            for (String key : INDEX_METAS) {
                 columnMeta.put(key, rs.getObject(key));
             }
         }
@@ -187,7 +196,7 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         }
 
         public boolean updateFullKey(long maxCardinality) {
-            if((long) columnMeta.getOrDefault(CARDINALITY, 0L) > maxCardinality) {
+            if((long) columnMeta.getOrDefault(INDEX_CARDINALITY, 0L) > maxCardinality) {
                 return true;
             }
             return false;
@@ -230,7 +239,27 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         }
 
         public long getCardinality() {
-            return getLongByDefault(CARDINALITY, 0);
+            return getLongByDefault(INDEX_CARDINALITY, 0);
+        }
+
+        public long getColumnSize() {
+            return getIntByDefault(COLUMN_SIZE, -1);
+        }
+
+        public boolean getColumnNullable() {
+            return "YES".equals(getStringByDefault(COLUMN_IS_NULLABLE, "NO"));
+        }
+
+        public boolean getISAutoIncrement() {
+            return "YES".equals(getStringByDefault(COLUMN_IS_AUTOINCREMENT, "NO"));
+        }
+
+        public String getRemarks() {
+            return getStringByDefault(COLUMN_REMARKS, "");
+        }
+
+        public int getDigits() {
+            return getIntByDefault(COLUMN_DECIMAL_DIGITS, 0);
         }
 
         private int getIntByDefault(String key, int defaultVal) {
