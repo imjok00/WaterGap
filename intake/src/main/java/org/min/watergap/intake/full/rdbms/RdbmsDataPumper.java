@@ -70,7 +70,7 @@ public abstract class RdbmsDataPumper extends DBPumper {
 
 
     protected void startNextDataPumper(FullTableDataBasePipingData tableData) throws InterruptedException, SQLException {
-        if (tableData.isNeedInit()) {
+        if (tableData.isNeedInit()) { // 判断是否半路重启过
             tryUpdatePosition(tableData);
         }
         String selectSql = generateSelectSQL(tableData);

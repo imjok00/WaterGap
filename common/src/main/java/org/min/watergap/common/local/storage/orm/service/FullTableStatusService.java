@@ -66,19 +66,4 @@ public class FullTableStatusService {
         return 0;
     }
 
-    public boolean create(String schema, String table, String createSql) {
-        try {
-            FullTableStatusORM fullTableStatusORM = new FullTableStatusORM(schema,
-                    table,
-                    createSql,
-                    "",
-                    MigrateStageService.LocalStorageStatus.INIT.getStatus());
-            return this.dao.create(fullTableStatusORM) > 0;
-        } catch (SQLException e) {
-            LOG.error("create local full status error, schema : {}, tableName : {}",
-                    schema, table, e);
-        }
-        return false;
-    }
-
 }

@@ -44,6 +44,7 @@ public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements Data
             if (schema != null) {
                 connection.setCatalog(schema);
             }
+            connection.setAutoCommit(false);
             statement = connection.prepareStatement(sql);
             for (Map<String, Object> oneColVal : contain.getValMapList()) {
                 int index = 1;
@@ -55,18 +56,21 @@ public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements Data
             }
 
             statement.executeBatch();
+            connection.commit();
             executeSuccess = true;
             return 1;
         } catch (Exception e) {
-            LOG.error("## execute update sql error, schema : {} , sql : {}", schema, sql, e);
+            LOG.warn("## execute update sql error, schema : {} , sql : {}, try to execute single insert!", schema, sql, e);
         } finally {
             try {
                 if (executeSuccess) {
                     callback.callAck();
+                } else {
+                    connection.rollback();
                 }
                 releaseConnect(connection, statement);
             } catch (SQLException e) {
-                throw new WaterGapException("release connect error", e);
+                LOG.warn("call ack error", e);
             }
 
         }
@@ -85,7 +89,6 @@ public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements Data
                     callback.callAck();
                 } catch (SQLException e) {
                     LOG.error("execute callback error", e);
-                    throw new WaterGapException("execute callback error", e);
                 }
             }
         }

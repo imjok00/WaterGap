@@ -23,8 +23,14 @@ public class FullTableStatusORM {
     @DatabaseField(columnName="sourceCreateSql")
     private String sourceCreateSql;
 
-    @DatabaseField(columnName="pipingFields")
-    private String pipingFields;
+    @DatabaseField(columnName="columns")
+    private String columns;
+
+    @DatabaseField(columnName="indexInfo")
+    private String indexInfo;
+
+    @DatabaseField(columnName="options")
+    private String options;
 
     @DatabaseField(columnName="status")
     private int status;
@@ -32,12 +38,44 @@ public class FullTableStatusORM {
     public FullTableStatusORM() {
     }
 
-    public FullTableStatusORM(String schemaName, String tableName, String sourceCreateSql, String pipingFields, int status) {
+    public static FullTableStatusORM build() {
+        return new FullTableStatusORM();
+    }
+
+    public FullTableStatusORM schemaName(String schemaName) {
         this.schemaName = schemaName;
+        return this;
+    }
+
+    public FullTableStatusORM tableName(String tableName) {
         this.tableName = tableName;
+        return this;
+    }
+
+    public FullTableStatusORM sourceCreateSql(String sourceCreateSql) {
         this.sourceCreateSql = sourceCreateSql;
-        this.pipingFields = pipingFields;
+        return this;
+    }
+
+    public FullTableStatusORM columns(String columns) {
+        this.columns = columns;
+        return this;
+    }
+
+    public FullTableStatusORM indexInfo(String indexInfo) {
+        this.indexInfo = indexInfo;
+        return this;
+    }
+
+    public FullTableStatusORM options(String options) {
+        this.options = options;
+        return this;
+    }
+
+
+    public FullTableStatusORM status(int status) {
         this.status = status;
+        return this;
     }
 
     public Long getId() {
@@ -72,12 +110,28 @@ public class FullTableStatusORM {
         this.sourceCreateSql = sourceCreateSql;
     }
 
-    public String getPipingFields() {
-        return pipingFields;
+    public String getColumns() {
+        return columns;
     }
 
-    public void setPipingFields(String pipingFields) {
-        this.pipingFields = pipingFields;
+    public void setColumns(String columns) {
+        this.columns = columns;
+    }
+
+    public String getIndexInfo() {
+        return indexInfo;
+    }
+
+    public void setIndexInfo(String indexInfo) {
+        this.indexInfo = indexInfo;
+    }
+
+    public String getOptions() {
+        return options;
+    }
+
+    public void setOptions(String options) {
+        this.options = options;
     }
 
     public int getStatus() {

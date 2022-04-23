@@ -3,7 +3,7 @@ package org.min.watergap.intake.full.rdbms;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
-import org.min.watergap.common.local.storage.orm.SchemaStatusORM;
+import org.min.watergap.common.local.storage.orm.FullTableStatusORM;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.common.utils.StringUtils;
@@ -45,7 +45,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                     case SCHEMA:/* 数据库建立好之后，开始迁移表结构 */
                         try {
                             SchemaStructBasePipingData schemaData = (SchemaStructBasePipingData) pipingData;
-                            showAllTables(schemaData.getSchemaName());
+                            showAllTablesThenPumpData(schemaData.getSchemaName());
                         } catch (SQLException e) {
                             LOG.error("execute pump schema data from source error", e);
                             return 0;
@@ -107,14 +107,25 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
      * @return
      * @throws SQLException
      */
-    private void showAllTables(String catalog) throws SQLException, InterruptedException {
+    private void showAllTablesThenPumpData(String catalog) throws SQLException, InterruptedException {
         executeStreamQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
             while (resultSet.next()) {
-                TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
-                pipingData.setIdentical(isIdentical);
-                assembleTableStruct(pipingData);
-                ThreadLocalUtils.getFullTableStatusService().create(pipingData.getSchemaName(), pipingData.getTableName(), pipingData.getSourceCreateSql());
-                pumpPiping.put(pipingData);
+                FullTableStatusORM fullTableStatusORM = ThreadLocalUtils.getFullTableStatusService().queryOne(catalog, resultSet.getString(1));
+                if (null != fullTableStatusORM) {
+                    pumpPiping.put(TableStructBasePipingData.getInstance(fullTableStatusORM, isIdentical));
+                } else {
+                    TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
+                    assembleTableStruct(pipingData);
+                    FullTableStatusORM orm = FullTableStatusORM.build().schemaName(pipingData.getSchemaName())
+                            .tableName(pipingData.getTableName())
+                            .sourceCreateSql(pipingData.getSourceCreateSql())
+                            .columns(pipingData.getColumnsStr())
+                            .indexInfo(pipingData.getIndexInfoStr())
+                            .options(pipingData.getAllOptionStr())
+                            .status(MigrateStageService.LocalStorageStatus.INIT.getStatus());
+                    ThreadLocalUtils.getFullTableStatusService().create(orm);
+                    pumpPiping.put(pipingData);
+                }
             }
         });
     }
@@ -125,11 +136,13 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                 pipingData.setSourceCreateSql(resultSet.getString(2));
             }
         });
+        pipingData.setIdentical(isIdentical);
         extractTableColumns(pipingData);
         //extractTableUniqueKeys(pipingData);
         extractTableNormalKeys(pipingData);
         extractTableForeignKes(pipingData);
         extractTableOption(pipingData);
+        pipingData.findFullKey();
     }
 
     private void extractTableColumns(TableStructBasePipingData pipingData) throws SQLException {
@@ -237,16 +250,13 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
         if (CollectionsUtils.isNotEmpty(pipingDataList)) {
             pipingDataList.forEach(schemaStruct -> {
                 SchemaStructBasePipingData schemaStructData = (SchemaStructBasePipingData) schemaStruct;
-                SchemaStatusORM schemaStatusORM = ThreadLocalUtils.getSchemaStatusService().queryOne(schemaStructData.getSchemaName());
-                if (schemaStatusORM == null) { // 还没有初始化
-                    ThreadLocalUtils.getSchemaStatusService().create(schemaStructData.getSchemaName(), MigrateStageService.LocalStorageStatus.INIT.getStatus());
-                }
+                ThreadLocalUtils.tryCreateSchemaStatus(schemaStructData.getSchemaName());
                 try {
                     pumpPiping.put(schemaStruct);
                 } catch (InterruptedException e) {
                     throw new WaterGapException("put in pump error", e);
                 }
-                LOG.info("query schema struct {}", schemaStatusORM);
+                LOG.info("query schema struct {}", schemaStructData);
             });
         }
     }

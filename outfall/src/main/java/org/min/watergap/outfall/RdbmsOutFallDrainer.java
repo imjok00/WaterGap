@@ -35,9 +35,7 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
             case TABLE:
                 TableStructBasePipingData tableStruct = (TableStructBasePipingData) data;
                 dataExecutor.execute(tableStruct.getSchemaName(), structConvertor.convert(tableStruct), () -> {
-                    ThreadLocalUtils.getFullTableStatusService().update(tableStruct.getSchemaName(),
-                            tableStruct.getTableName(), MigrateStageService.LocalStorageStatus.COMPLETE.getStatus());
-                    ThreadLocalUtils.getFullTableDataPositionService().create(
+                    ThreadLocalUtils.tryCreateDataPosition(
                             new FullTableDataPositionORM(tableStruct.getSchemaName(), tableStruct.getTableName(), ""));
                     // 表结构迁移完成，开始迁移数据
                     ackAndStartFullTableData(tableStruct);

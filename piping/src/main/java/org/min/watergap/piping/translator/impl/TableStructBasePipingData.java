@@ -1,5 +1,8 @@
 package org.min.watergap.piping.translator.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import org.min.watergap.common.local.storage.orm.FullTableStatusORM;
 import org.min.watergap.common.rdbms.struct.StructType;
 
 import java.sql.ResultSet;
@@ -19,7 +22,6 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
     private IndexInfo indexInfo;
 
     private Map<String, String> tableOptions;
-
     public TableStructBasePipingData(String schemaName, String tableName) {
         setSchemaName(schemaName);
         setTableName(tableName);
@@ -28,6 +30,13 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     public List<Column> getColumns() {
         return columns;
+    }
+
+    public String getColumnsStr() {
+        if (columns == null) {
+            return "";
+        }
+        return new Gson().toJson(columns);
     }
 
     public void initColumns() {
@@ -40,6 +49,13 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     public IndexInfo getIndexInfo() {
         return indexInfo;
+    }
+
+    public String getIndexInfoStr() {
+        if (indexInfo == null) {
+            return "";
+        }
+        return new Gson().toJson(indexInfo);
     }
 
     public void setIndexInfo(IndexInfo indexInfo) {
@@ -66,6 +82,17 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     public String getTableOption(String key) {
         return this.tableOptions.get(key) == null ? "" : this.tableOptions.get(key);
+    }
+
+    public Map<String, String> setAllOptions(Map<String, String> map) {
+        return this.tableOptions = map;
+    }
+
+    public String getAllOptionStr() {
+        if (this.tableOptions == null) {
+            return "";
+        }
+        return new Gson().toJson(tableOptions);
     }
 
     public void findFullKey() {
@@ -146,6 +173,17 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         return StructType.TABLE;
     }
 
+    public static TableStructBasePipingData getInstance(FullTableStatusORM orm, boolean identical) {
+        TableStructBasePipingData pipingData = new TableStructBasePipingData(orm.getSchemaName(), orm.getTableName());
+        pipingData.setColumns(new Gson().fromJson(orm.getColumns(), new TypeToken<List<Column>>(){}.getType()));
+        pipingData.setIndexInfo(new Gson().fromJson(orm.getIndexInfo(), IndexInfo.class));
+        pipingData.setAllOptions(new Gson().fromJson(orm.getOptions(), new TypeToken<Map<String, String>>(){}.getType()));
+        pipingData.setSourceCreateSql(orm.getSourceCreateSql());
+        pipingData.setIdentical(identical);
+        pipingData.findFullKey();
+        return pipingData;
+    }
+
     public static class Column {
         // 是否作为全量查询的key
         public static final String COLUMN_SIZE = "COLUMN_SIZE";
@@ -196,7 +234,7 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         }
 
         public boolean updateFullKey(long maxCardinality) {
-            if((long) columnMeta.getOrDefault(INDEX_CARDINALITY, 0L) > maxCardinality) {
+            if(getCardinality() > maxCardinality) {
                 return true;
             }
             return false;
@@ -243,7 +281,7 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         }
 
         public long getColumnSize() {
-            return getIntByDefault(COLUMN_SIZE, -1);
+            return getLongByDefault(COLUMN_SIZE, -1);
         }
 
         public boolean getColumnNullable() {
@@ -267,13 +305,27 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             if (val == null) {
                 return defaultVal;
             }
+            String strVal = String.valueOf(val);
+            int index = strVal.indexOf(".");
+            if (index > 0) { // 存在小数
+                return Integer.parseInt(strVal.substring(0, index));
+            }
             return (int) val;
+        }
+
+        private Object getObject(String key) {
+            return columnMeta.get(key);
         }
 
         private long getLongByDefault(String key, int defaultVal) {
             Object val = columnMeta.get(key);
             if (val == null) {
                 return defaultVal;
+            }
+            String strVal = String.valueOf(val);
+            int index = strVal.indexOf(".");
+            if (index > 0) { // 存在小数
+                return Long.parseLong(strVal.substring(0, index));
             }
             return (long) val;
         }

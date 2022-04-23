@@ -31,8 +31,8 @@ public class SingleThreadWorkGroup extends AbstractWaterGapLifeCycle {
     protected SchemaStatusService schemaStatusService;
     protected MigrateStageService migrateStageService;
 
-    public SingleThreadWorkGroup(PipingExecutor executor, WaterGapPiping piping) {
-        this.piping = piping;
+    public SingleThreadWorkGroup(PipingExecutor executor, WaterGapPiping outPiping) {
+        this.piping = outPiping;
         worker = new Thread(() -> {
             setLocalService();
             while (isStart()) {
@@ -45,7 +45,7 @@ public class SingleThreadWorkGroup extends AbstractWaterGapLifeCycle {
                     stop();
                 } catch (Exception e) {
                     LOG.error("work thread take interrupt, try to stop", e);
-                    stop();
+                    destroy();
                 }
             }
         });
