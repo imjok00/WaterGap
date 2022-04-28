@@ -68,41 +68,48 @@ public class MysqlStructConvertor implements StructConvertor {
         }
 
         StringBuilder primaryKeyBuilder = new StringBuilder();
-        primaryKeyBuilder.append("PRIMARY KEY (");
-        for (int i = 0; i < tableStruct.getIndexInfo().getPrimaryKeys().size(); i++) {
-            TableStructBasePipingData.Column column = tableStruct.getIndexInfo().getPrimaryKeys().get(i);
-            primaryKeyBuilder.append(MYSQL_ESCAPE).append(column.getColumnName()).append(MYSQL_ESCAPE);
-            if (i != tableStruct.getIndexInfo().getPrimaryKeys().size() - 1) {
-                primaryKeyBuilder.append(",");
-            }
-        }
-        primaryKeyBuilder.append("),");
-
-        StringBuilder uniqueKeyBuilder = new StringBuilder();
-        for (String key : tableStruct.getIndexInfo().getUniqueKeys().keySet()) {
-            uniqueKeyBuilder.append("UNIQUE KEY `").append(key).append("` (");
-            for (int i = 0; i < tableStruct.getIndexInfo().getUniqueKeys().get(key).size(); i++) {
-                TableStructBasePipingData.Column column = tableStruct.getIndexInfo().getUniqueKeys().get(key).get(i);
-                uniqueKeyBuilder.append("`" + column.getColumnName() + "`");
-                if (i != tableStruct.getIndexInfo().getUniqueKeys().get(key).size() - 1) {
-                    uniqueKeyBuilder.append(",");
+        if (tableStruct.getIndexInfo() != null && tableStruct.getIndexInfo().getPrimaryKeys() != null) {
+            primaryKeyBuilder.append("PRIMARY KEY (");
+            for (int i = 0; i < tableStruct.getIndexInfo().getPrimaryKeys().size(); i++) {
+                TableStructBasePipingData.Column column = tableStruct.getIndexInfo().getPrimaryKeys().get(i);
+                primaryKeyBuilder.append(MYSQL_ESCAPE).append(column.getColumnName()).append(MYSQL_ESCAPE);
+                if (i != tableStruct.getIndexInfo().getPrimaryKeys().size() - 1) {
+                    primaryKeyBuilder.append(",");
                 }
             }
-            uniqueKeyBuilder.append("),");
+            primaryKeyBuilder.append("),");
+        }
+
+        StringBuilder uniqueKeyBuilder = new StringBuilder();
+        if (tableStruct.getIndexInfo() != null && tableStruct.getIndexInfo().getUniqueKeys() != null) {
+            for (String key : tableStruct.getIndexInfo().getUniqueKeys().keySet()) {
+                uniqueKeyBuilder.append("UNIQUE KEY `").append(key).append("` (");
+                for (int i = 0; i < tableStruct.getIndexInfo().getUniqueKeys().get(key).size(); i++) {
+                    TableStructBasePipingData.Column column = tableStruct.getIndexInfo().getUniqueKeys().get(key).get(i);
+                    uniqueKeyBuilder.append("`" + column.getColumnName() + "`");
+                    if (i != tableStruct.getIndexInfo().getUniqueKeys().get(key).size() - 1) {
+                        uniqueKeyBuilder.append(",");
+                    }
+                }
+                uniqueKeyBuilder.append("),");
+            }
         }
 
         StringBuilder normalKeyBuilder = new StringBuilder();
-        for (String key : tableStruct.getIndexInfo().getNormalKeys().keySet()) {
-            uniqueKeyBuilder.append("KEY `").append(key).append("` (");
-            for (int i = 0; i < tableStruct.getIndexInfo().getNormalKeys().get(key).size(); i++) {
-                TableStructBasePipingData.Column column = tableStruct.getIndexInfo().getNormalKeys().get(key).get(i);
-                uniqueKeyBuilder.append("`" + column.getColumnName() + "`");
-                if (i != tableStruct.getIndexInfo().getNormalKeys().get(key).size() - 1) {
-                    uniqueKeyBuilder.append(",");
+        if (tableStruct.getIndexInfo() != null && tableStruct.getIndexInfo().getNormalKeys() != null) {
+            for (String key : tableStruct.getIndexInfo().getNormalKeys().keySet()) {
+                uniqueKeyBuilder.append("KEY `").append(key).append("` (");
+                for (int i = 0; i < tableStruct.getIndexInfo().getNormalKeys().get(key).size(); i++) {
+                    TableStructBasePipingData.Column column = tableStruct.getIndexInfo().getNormalKeys().get(key).get(i);
+                    uniqueKeyBuilder.append("`" + column.getColumnName() + "`");
+                    if (i != tableStruct.getIndexInfo().getNormalKeys().get(key).size() - 1) {
+                        uniqueKeyBuilder.append(",");
+                    }
                 }
+                uniqueKeyBuilder.append("),");
             }
-            uniqueKeyBuilder.append("),");
         }
+
 
         /**
          * MYSQL 默认ENGINE=InnoDB DEFAULT CHARSET=UTF-8 ROW_FORMAT=DYNAMIC COMMENT='' */

@@ -1,16 +1,16 @@
 {
   "mode" : "ONLY_FULL",
   "sqlLimit" : 2,
-  "source" : {
+  "target" : {
     "dbType" : "MySQL",
     "ip" : "127.0.0.1",
     "port" : 13306,
-    "databaseName" : "testdb",
+    "databaseName" : "mysql",
     "user" : "root",
-    "password" : "123456",
-    "readonly" : "true"
+    "password" : "123456"
+
   },
-  "target" : {
+  "source" : {
     "dbType" : "MySQL",
     "ip" : "127.0.0.1",
     "port" : 23306,

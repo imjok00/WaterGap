@@ -1,6 +1,5 @@
 package org.min.watergap.common.local.storage.orm.service;
 
-import com.j256.ormlite.dao.Dao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.local.storage.OrmJdbcHelper;
@@ -13,10 +12,8 @@ import java.sql.SQLException;
  *
  * @Create by metaX.h on 2022/4/5 20:46
  */
-public class MigrateStageService {
+public class MigrateStageService extends BaseLocalService<MigrateStageORM> {
     private static final Logger LOG = LogManager.getLogger(MigrateStageService.class);
-
-    private Dao<MigrateStageORM, Long> dao;
 
     public MigrateStageService() {
         this.dao = OrmJdbcHelper.getDaoSupport(MigrateStageORM.class);

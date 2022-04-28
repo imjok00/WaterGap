@@ -1,6 +1,5 @@
 package org.min.watergap.common.local.storage.orm.service;
 
-import com.j256.ormlite.dao.Dao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.local.storage.OrmJdbcHelper;
@@ -15,10 +14,8 @@ import java.util.List;
  *
  * @Create by metaX.h on 2022/4/5 20:46
  */
-public class SchemaStatusService {
+public class SchemaStatusService extends BaseLocalService<SchemaStatusORM> {
     private static final Logger LOG = LogManager.getLogger(SchemaStatusService.class);
-
-    private Dao<SchemaStatusORM, Long> dao;
 
     public SchemaStatusService() {
         this.dao = OrmJdbcHelper.getDaoSupport(SchemaStatusORM.class);
@@ -61,4 +58,5 @@ public class SchemaStatusService {
         }
         return 0;
     }
+
 }

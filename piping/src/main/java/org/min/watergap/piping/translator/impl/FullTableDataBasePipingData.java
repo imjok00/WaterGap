@@ -56,6 +56,10 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
     public void setContain(ColumnValContain contain) {
         this.contain = contain;
 
+        if (getIndexInfo() == null) {
+            return;
+        }
+
         List<Column> primaryKeys = getIndexInfo().getPrimaryKeys();
         if (CollectionsUtils.isEmpty(primaryKeys)) {
             return;

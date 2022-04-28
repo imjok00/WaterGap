@@ -55,6 +55,7 @@ public abstract class OutFallDrainer extends AbstractWaterGapLifeCycle implement
         }
     }
 
+
     public void injectPiping(WaterGapPiping pumpPiping, WaterGapPiping ackPiping) {
         this.pumpPiping = pumpPiping;
         this.ackPiping = ackPiping;

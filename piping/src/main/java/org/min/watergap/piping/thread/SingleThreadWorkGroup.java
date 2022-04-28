@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
 import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionService;
-import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
+import org.min.watergap.common.local.storage.orm.service.FullTableStructService;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
 import org.min.watergap.common.utils.ThreadLocalUtils;
@@ -26,7 +26,7 @@ public class SingleThreadWorkGroup extends AbstractWaterGapLifeCycle {
     private WaterGapPiping piping;
 
     // 存储在本地的基础对象
-    protected FullTableStatusService fullTableStatusService;
+    protected FullTableStructService fullTableStatusService;
     protected FullTableDataPositionService fullTableDataPositionService;
     protected SchemaStatusService schemaStatusService;
     protected MigrateStageService migrateStageService;
@@ -67,14 +67,14 @@ public class SingleThreadWorkGroup extends AbstractWaterGapLifeCycle {
 
     @Override
     public void init(WaterGapContext waterGapContext) {
-        fullTableStatusService = new FullTableStatusService();
+        fullTableStatusService = new FullTableStructService();
         schemaStatusService = new SchemaStatusService();
         migrateStageService = new MigrateStageService();
         fullTableDataPositionService = new FullTableDataPositionService();
     }
 
     private void setLocalService() {
-        ThreadLocalUtils.set(FullTableStatusService.class.getName(), fullTableStatusService);
+        ThreadLocalUtils.set(FullTableStructService.class.getName(), fullTableStatusService);
         ThreadLocalUtils.set(FullTableDataPositionService.class.getName(), fullTableDataPositionService);
         ThreadLocalUtils.set(SchemaStatusService.class.getName(), schemaStatusService);
         ThreadLocalUtils.set(MigrateStageService.class.getName(), migrateStageService);

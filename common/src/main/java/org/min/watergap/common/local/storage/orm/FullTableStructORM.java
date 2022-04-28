@@ -8,8 +8,8 @@ import com.j256.ormlite.table.DatabaseTable;
  *
  * @Create by metaX.h on 2022/4/5 10:09
  */
-@DatabaseTable(tableName = "FULL_TABLE_STATUS")
-public class FullTableStatusORM {
+@DatabaseTable(tableName = "FULL_TABLE_STRUCT")
+public class FullTableStructORM {
 
     @DatabaseField(columnName = "id", generatedId = true)
     private Long id;
@@ -35,45 +35,45 @@ public class FullTableStatusORM {
     @DatabaseField(columnName="status")
     private int status;
 
-    public FullTableStatusORM() {
+    public FullTableStructORM() {
     }
 
-    public static FullTableStatusORM build() {
-        return new FullTableStatusORM();
+    public static FullTableStructORM build() {
+        return new FullTableStructORM();
     }
 
-    public FullTableStatusORM schemaName(String schemaName) {
+    public FullTableStructORM schemaName(String schemaName) {
         this.schemaName = schemaName;
         return this;
     }
 
-    public FullTableStatusORM tableName(String tableName) {
+    public FullTableStructORM tableName(String tableName) {
         this.tableName = tableName;
         return this;
     }
 
-    public FullTableStatusORM sourceCreateSql(String sourceCreateSql) {
+    public FullTableStructORM sourceCreateSql(String sourceCreateSql) {
         this.sourceCreateSql = sourceCreateSql;
         return this;
     }
 
-    public FullTableStatusORM columns(String columns) {
+    public FullTableStructORM columns(String columns) {
         this.columns = columns;
         return this;
     }
 
-    public FullTableStatusORM indexInfo(String indexInfo) {
+    public FullTableStructORM indexInfo(String indexInfo) {
         this.indexInfo = indexInfo;
         return this;
     }
 
-    public FullTableStatusORM options(String options) {
+    public FullTableStructORM options(String options) {
         this.options = options;
         return this;
     }
 
 
-    public FullTableStatusORM status(int status) {
+    public FullTableStructORM status(int status) {
         this.status = status;
         return this;
     }

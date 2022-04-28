@@ -26,7 +26,7 @@ public class MigrateStageORM {
     }
 
     public static enum StageEnum {
-        START, SCHEMA_MIGRATED, TABLE_MIGRATED, DATA_MIGRATING, FULL_OVER;
+        START, SCHEMA_MIGRATED, TABLE_MIGRATED, FULL_OVER;
     }
 
     public Long getId() {

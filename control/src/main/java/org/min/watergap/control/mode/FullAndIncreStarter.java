@@ -8,21 +8,25 @@ import org.min.watergap.common.lifecycle.WaterGapLifeCycle;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.full.rdbms.RdbmsDataPumper;
 import org.min.watergap.intake.full.rdbms.extractor.MysqlDBAllTypePumper;
+import org.min.watergap.intake.incre.IncreLogPumper;
+import org.min.watergap.intake.incre.rdbms.MysqlIncreLogPumper;
 import org.min.watergap.outfall.Drainer;
 import org.min.watergap.outfall.OutFallDrainer;
 import org.min.watergap.outfall.full.RdbmsOutFallDrainer;
 import org.min.watergap.piping.translator.WaterGapPiping;
 
 /**
- * 全量模式启动 <br/>
- * 只迁移全量数据
+ * 全量+增量的方式 <br/>
+ * 进行迁移
  *
  * @Create by metaX.h on 2021/11/3 23:52
  */
-public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
-    private static final Logger LOG = LogManager.getLogger(FullStarter.class);
+public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Runner {
+    private static final Logger LOG = LogManager.getLogger(FullAndIncreStarter.class);
 
     private Pumper fullPumper;
+
+    private IncreLogPumper increLogPumper;
 
     private WaterGapPiping pumpPiping;
 
@@ -37,6 +41,7 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
             case MySQL:
                 LOG.info("# Init MySQL pumper...");
                 fullPumper = new MysqlDBAllTypePumper();
+                increLogPumper = new MysqlIncreLogPumper();
                 break;
         }
         switch (waterGapContext.getGlobalConfig().getTargetConfig().getDatabaseType()) {
@@ -57,10 +62,18 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
     @Override
     public void start() {
         super.start();
-        LOG.info("### Full Pumper Starter ###");
-        fullPumper.pump();
-        LOG.info("### Full Drainer Starter ###");
-        fullDrainer.apply();
+        if (increLogPumper.check()) {
+            increLogPumper.prepare();
+            LOG.info("### Incre Pumper Starter ###");
+            increLogPumper.start();
+            LOG.info("### Full Pumper Starter ###");
+            fullPumper.pump();
+            LOG.info("### Full Drainer Starter ###");
+            fullDrainer.apply();
+        } else {
+            LOG.error("Incre pumper check fail");
+        }
+
     }
 
     @Override

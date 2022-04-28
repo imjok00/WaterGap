@@ -1,6 +1,5 @@
 package org.min.watergap.common.local.storage.orm.service;
 
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -18,11 +17,9 @@ import java.util.List;
  *
  * @Create by metaX.h on 2022/4/9 22:16
  */
-public class FullTableDataPositionService {
+public class FullTableDataPositionService extends BaseLocalService<FullTableDataPositionORM>{
 
     private static final Logger LOG = LogManager.getLogger(FullTableDataPositionService.class);
-
-    private Dao<FullTableDataPositionORM, Long> dao;
 
     public FullTableDataPositionService() {
         this.dao = OrmJdbcHelper.getDaoSupport(FullTableDataPositionORM.class);
@@ -54,6 +51,7 @@ public class FullTableDataPositionService {
             updateBuilder.updateColumnValue("position", position)
                     .where().eq("schemaName", schema)
                     .and().eq("tableName", table);
+            LOG.info("table {}.{}, full data position {}", schema, table, position);
             return updateBuilder.update();
         } catch (SQLException e) {
             LOG.error("update table struct fail schema: {}, table : {}, position:{}",
@@ -68,6 +66,7 @@ public class FullTableDataPositionService {
             updateBuilder.updateColumnValue("status", MigrateStageService.LocalStorageStatus.COMPLETE.getStatus())
                     .where().eq("schemaName", schema)
                     .and().eq("tableName", table);
+            LOG.info("table {}.{} full data complete", schema, table);
             return updateBuilder.update();
         } catch (SQLException e) {
             LOG.error("update table struct fail schema: {}, table : {}",
@@ -76,9 +75,4 @@ public class FullTableDataPositionService {
         return 0;
     }
 
-    public boolean isAllComplete() throws SQLException {
-        QueryBuilder queryBuilder = this.dao.queryBuilder();
-        queryBuilder.where().ne("status",  MigrateStageService.LocalStorageStatus.COMPLETE.getStatus());
-        return 0 == queryBuilder.query().size();
-    }
 }

@@ -2,7 +2,7 @@ package org.min.watergap.piping.translator.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.min.watergap.common.local.storage.orm.FullTableStatusORM;
+import org.min.watergap.common.local.storage.orm.FullTableStructORM;
 import org.min.watergap.common.rdbms.struct.StructType;
 
 import java.sql.ResultSet;
@@ -95,7 +95,14 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         return new Gson().toJson(tableOptions);
     }
 
+    public boolean isNoPrimary() {
+        return indexInfo == null;
+    }
+
     public void findFullKey() {
+        if (indexInfo == null) {
+            return;
+        }
         if (this.indexInfo.getPrimaryKeys() != null) {
             Column maxColumn = this.indexInfo.getPrimaryKeys().get(0);
             for(Column column : this.indexInfo.getPrimaryKeys()) {
@@ -173,7 +180,7 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         return StructType.TABLE;
     }
 
-    public static TableStructBasePipingData getInstance(FullTableStatusORM orm, boolean identical) {
+    public static TableStructBasePipingData getInstance(FullTableStructORM orm, boolean identical) {
         TableStructBasePipingData pipingData = new TableStructBasePipingData(orm.getSchemaName(), orm.getTableName());
         pipingData.setColumns(new Gson().fromJson(orm.getColumns(), new TypeToken<List<Column>>(){}.getType()));
         pipingData.setIndexInfo(new Gson().fromJson(orm.getIndexInfo(), IndexInfo.class));
@@ -310,7 +317,7 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             if (index > 0) { // 存在小数
                 return Integer.parseInt(strVal.substring(0, index));
             }
-            return (int) val;
+            return Integer.parseInt(strVal);
         }
 
         private Object getObject(String key) {
@@ -327,7 +334,7 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             if (index > 0) { // 存在小数
                 return Long.parseLong(strVal.substring(0, index));
             }
-            return (long) val;
+            return Long.parseLong(strVal);
         }
 
         private String getStringByDefault(String key, String defVal) {

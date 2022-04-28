@@ -3,7 +3,7 @@ package org.min.watergap.common.utils;
 import org.min.watergap.common.local.storage.orm.FullTableDataPositionORM;
 import org.min.watergap.common.local.storage.orm.SchemaStatusORM;
 import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionService;
-import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
+import org.min.watergap.common.local.storage.orm.service.FullTableStructService;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
 
@@ -33,7 +33,7 @@ public class ThreadLocalUtils {
     }
 
     public static void tryCreateDataPosition(FullTableDataPositionORM obj) throws SQLException {
-        ThreadLocalUtils.getFullTableStatusService().update(obj.getSchemaName(),
+        ThreadLocalUtils.getFullTableStructService().update(obj.getSchemaName(),
                 obj.getTableName(), MigrateStageService.LocalStorageStatus.COMPLETE.getStatus());
         if (null == ThreadLocalUtils.getFullTableDataPositionService().queryLastPosition(obj.getSchemaName(), obj.getTableName())) {
             ThreadLocalUtils.getFullTableDataPositionService().create(
@@ -43,8 +43,8 @@ public class ThreadLocalUtils {
 
 
 
-    public static FullTableStatusService getFullTableStatusService() {
-        return (FullTableStatusService) ThreadLocalUtils.get(FullTableStatusService.class.getName());
+    public static FullTableStructService getFullTableStructService() {
+        return (FullTableStructService) ThreadLocalUtils.get(FullTableStructService.class.getName());
     }
 
     public static SchemaStatusService getSchemaStatusService() {
