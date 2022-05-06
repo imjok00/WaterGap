@@ -1,10 +1,6 @@
 package org.min.watergap.common.position.full;
 
-import com.google.gson.Gson;
 import org.min.watergap.common.position.Position;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 全量迁移时位置记录
@@ -14,41 +10,32 @@ import java.util.Map;
  */
 public class RdbmsFullPosition implements Position {
 
-    public static final String START_POSITION_FLAG = "{}";
+    public static final String START_POSITION_FLAG = "";
 
-    private Map<String, String> positionMap;
+    private String position;
 
     public RdbmsFullPosition(String postion) {
-        parse(postion);
-    }
-
-    public RdbmsFullPosition(Map<String, String> keyValMap) {
-        positionMap = keyValMap;
+        this.position = postion;
     }
 
     @Override
-    public String getVal(String key) {
-        if (positionMap == null) {
-            return null;
-        }
-        return positionMap.get(key);
+    public String getVal() {
+        return this.position;
     }
 
     @Override
     public void parse(String position) {
-        Gson gson = new Gson();
-        positionMap = gson.fromJson(position, HashMap.class);
+        this.position = position;
     }
 
     @Override
     public String toString() {
-        Gson gson = new Gson();
-        return gson.toJson(positionMap);
+        return this.position;
     }
 
     @Override
     public boolean isFirst() {
-        return positionMap == null || positionMap.isEmpty();
+        return position == null || "".equals(position);
     }
 
 

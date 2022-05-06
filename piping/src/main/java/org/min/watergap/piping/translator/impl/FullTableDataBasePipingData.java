@@ -6,7 +6,6 @@ import org.min.watergap.common.rdbms.struct.StructType;
 import org.min.watergap.common.utils.CollectionsUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,14 +67,13 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
             return;
         }
         Map<String, Object> oneColumnMap = contain.getValMapList().get(contain.getValMapList().size() - 1);
-        Map<String, String> keyValMap = new HashMap<>();
         primaryKeys.forEach(column -> {
             if (column.isFullKey()) {
-                keyValMap.put(column.getColumnName(), String.valueOf(oneColumnMap.get(column.getColumnName())));
+                Position position = new RdbmsFullPosition(String.valueOf(oneColumnMap.get(column.getColumnName())));
+                setPosition(position);
             }
         });
-        Position position = new RdbmsFullPosition(keyValMap);
-        setPosition(position);
+
     }
 
     public ColumnValContain getContain() {

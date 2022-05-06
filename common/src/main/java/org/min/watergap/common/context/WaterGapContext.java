@@ -5,6 +5,8 @@ import org.min.watergap.common.config.mode.StartMode;
 import org.min.watergap.common.datasource.DataSourceFactory;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * context对象
  */
@@ -17,6 +19,8 @@ public class WaterGapContext {
     private DataSourceWrapper outDataSource;
 
     private WaterGapGlobalConfig globalConfig;
+
+    private CountDownLatch increCnt = new CountDownLatch(1);
 
     public WaterGapContext(WaterGapGlobalConfig globalConfig) {
         this.globalConfig = globalConfig;
@@ -49,4 +53,7 @@ public class WaterGapContext {
         return globalConfig.getSqlSelectLimit();
     }
 
+    public CountDownLatch getIncreCnt() {
+        return increCnt;
+    }
 }

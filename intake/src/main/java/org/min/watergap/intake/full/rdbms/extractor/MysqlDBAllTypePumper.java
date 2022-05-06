@@ -42,20 +42,22 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
                 .collect(Collectors.joining(",")));
         selectSQL.append(" FROM ").append(tableData.getTableName());
 
-        if (CollectionsUtils.isNotEmpty(tableData.getIndexInfo().getPrimaryKeys()) && !tableData.getPosition().isFirst()) {
+        if (tableData.getIndexInfo() != null
+                && CollectionsUtils.isNotEmpty(tableData.getIndexInfo().getPrimaryKeys())
+                && !tableData.getPosition().isFirst()) {
             selectSQL.append(generateSearchKeys(tableData.getIndexInfo().getPrimaryKeys(), tableData.getPosition()));
+            selectSQL.append(" LIMIT ").append(sqlSelectLimit);
         }
-        selectSQL.append(" LIMIT ").append(sqlSelectLimit);
+
         return selectSQL.toString();
     }
 
     private String generateSearchKeys(List<TableStructBasePipingData.Column> list, Position position) {
         StringBuilder whereSQL = new StringBuilder().append(" WHERE ");
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        for (int i = 0, length = list.size(); i < length; i++) {
-            TableStructBasePipingData.Column column = list.get(i);
+        for (TableStructBasePipingData.Column column : list) {
             if (column.isFullKey()) {
-                whereSQL.append(column.getColumnName()).append(">").append(position.getVal(column.getColumnName()));
+                whereSQL.append(column.getColumnName()).append(">").append(position.getVal());
                 orderBy.append(column.getColumnName()).append(" ASC");
                 break;
             }

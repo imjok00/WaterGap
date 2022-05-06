@@ -3,7 +3,7 @@ package org.min.watergap.intake.full.rdbms;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
-import org.min.watergap.common.local.storage.orm.FullTableStatusORM;
+import org.min.watergap.common.local.storage.orm.FullTableStructORM;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.common.utils.StringUtils;
@@ -110,20 +110,20 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
     private void showAllTablesThenPumpData(String catalog) throws SQLException, InterruptedException {
         executeStreamQuery(catalog, pumperDBDialect.SHOW_TABLES(), (resultSet) -> {
             while (resultSet.next()) {
-                FullTableStatusORM fullTableStatusORM = ThreadLocalUtils.getFullTableStatusService().queryOne(catalog, resultSet.getString(1));
+                FullTableStructORM fullTableStatusORM = ThreadLocalUtils.getFullTableStructService().queryOne(catalog, resultSet.getString(1));
                 if (null != fullTableStatusORM) {
                     pumpPiping.put(TableStructBasePipingData.getInstance(fullTableStatusORM, isIdentical));
                 } else {
                     TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
                     assembleTableStruct(pipingData);
-                    FullTableStatusORM orm = FullTableStatusORM.build().schemaName(pipingData.getSchemaName())
+                    FullTableStructORM orm = FullTableStructORM.build().schemaName(pipingData.getSchemaName())
                             .tableName(pipingData.getTableName())
                             .sourceCreateSql(pipingData.getSourceCreateSql())
                             .columns(pipingData.getColumnsStr())
                             .indexInfo(pipingData.getIndexInfoStr())
                             .options(pipingData.getAllOptionStr())
                             .status(MigrateStageService.LocalStorageStatus.INIT.getStatus());
-                    ThreadLocalUtils.getFullTableStatusService().create(orm);
+                    ThreadLocalUtils.getFullTableStructService().create(orm);
                     pumpPiping.put(pipingData);
                 }
             }

@@ -3,7 +3,7 @@ package org.min.watergap.intake.full.rdbms;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.local.storage.orm.MigrateStageORM;
 import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionService;
-import org.min.watergap.common.local.storage.orm.service.FullTableStatusService;
+import org.min.watergap.common.local.storage.orm.service.FullTableStructService;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
 import org.min.watergap.common.utils.StringUtils;
@@ -39,7 +39,7 @@ public abstract class RdbmsDataPumper extends DBPumper {
     }
 
     private void initLocalService() {
-        ThreadLocalUtils.set(FullTableStatusService.class.getName(), new FullTableStatusService());
+        ThreadLocalUtils.set(FullTableStructService.class.getName(), new FullTableStructService());
         ThreadLocalUtils.set(FullTableDataPositionService.class.getName(), new FullTableDataPositionService());
         ThreadLocalUtils.set(SchemaStatusService.class.getName(), new SchemaStatusService());
         ThreadLocalUtils.set(MigrateStageService.class.getName(), new MigrateStageService());
@@ -68,7 +68,6 @@ public abstract class RdbmsDataPumper extends DBPumper {
         }
     }
 
-
     protected void startNextDataPumper(FullTableDataBasePipingData tableData) throws InterruptedException, SQLException {
         if (tableData.isNeedInit()) { // 判断是否半路重启过
             tryUpdatePosition(tableData);
@@ -84,7 +83,7 @@ public abstract class RdbmsDataPumper extends DBPumper {
                 }
                 contain.addVal(map);
             }
-            if (contain.isEmpty()) {
+            if (tableData.isNoPrimary() || contain.isEmpty()) { // 无主键表 与 查到尾部
                 // 全量完成
                 ThreadLocalUtils.getFullTableDataPositionService().finishDataFull(tableData.getSchemaName(), tableData.getTableName());
                 tryClose();
@@ -108,7 +107,9 @@ public abstract class RdbmsDataPumper extends DBPumper {
     }
 
     protected boolean tryClose() throws SQLException {
-        if (ThreadLocalUtils.getFullTableDataPositionService().isAllComplete()) {
+        if (ThreadLocalUtils.getFullTableDataPositionService().isAllComplete()
+                && MigrateStageORM.StageEnum.FULL_OVER.toString()
+                .equals(ThreadLocalUtils.getMigrateStageService().queryOne().getStage())) {
             stop();
             return true;
         }

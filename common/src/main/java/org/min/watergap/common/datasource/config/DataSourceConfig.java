@@ -30,7 +30,7 @@ public abstract class DataSourceConfig {
 
     private String ip;
 
-    private String port;
+    private int port;
 
     private String databaseName;
 
@@ -54,7 +54,7 @@ public abstract class DataSourceConfig {
         return databaseName;
     }
 
-    public String getPort() {
+    public int getPort() {
         return port;
     }
 
@@ -76,7 +76,7 @@ public abstract class DataSourceConfig {
 
     public void load(JsonObject prop){
         this.ip = prop.get(CONFIG_DATASOURCE_IP).getAsString();
-        this.port = prop.get(CONFIG_DATASOURCE_PORT).getAsString();
+        this.port = prop.get(CONFIG_DATASOURCE_PORT).getAsInt();
         this.databaseName = prop.get(CONFIG_DATASOURCE_DATABASENAME).getAsString();
         this.user = prop.get(CONFIG_DATASOURCE_USER).getAsString();
         this.password = prop.get(CONFIG_DATASOURCE_PASSWORD).getAsString();

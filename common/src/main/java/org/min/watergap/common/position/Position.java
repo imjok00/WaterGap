@@ -7,11 +7,9 @@ package org.min.watergap.common.position;
  */
 public interface Position {
 
-    String getVal(String key);
+    String getVal();
 
     void parse(String position);
-
-    String toString();
 
     boolean isFirst();
 

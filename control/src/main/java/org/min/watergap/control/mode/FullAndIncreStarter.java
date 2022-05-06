@@ -9,7 +9,7 @@ import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.full.rdbms.RdbmsDataPumper;
 import org.min.watergap.intake.full.rdbms.extractor.MysqlDBAllTypePumper;
 import org.min.watergap.intake.incre.IncreLogPumper;
-import org.min.watergap.intake.incre.rdbms.MysqlIncreLogPumper;
+import org.min.watergap.intake.incre.rdbms.mysql.MysqlIncreLogPumper;
 import org.min.watergap.outfall.Drainer;
 import org.min.watergap.outfall.OutFallDrainer;
 import org.min.watergap.outfall.full.RdbmsOutFallDrainer;
@@ -82,6 +82,10 @@ public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Ru
         while (pumpLife.isStart()) {
             Thread.sleep(1000); // sleep 1s
         }
+        // 全量结束
+        ((WaterGapLifeCycle) fullPumper).destroy();
+        // 增量开始
+        increLogPumper.pump();
     }
 
     @Override
