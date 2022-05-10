@@ -9,6 +9,7 @@ import org.min.watergap.common.local.storage.orm.IncrePositionORM;
 import org.min.watergap.common.local.storage.orm.service.IncrePositionService;
 import org.min.watergap.common.position.Position;
 import org.min.watergap.common.position.incre.MysqlIncrePosition;
+import org.min.watergap.common.utils.StringUtils;
 import org.min.watergap.intake.incre.IncreLogPumper;
 import org.min.watergap.intake.incre.rdbms.mysql.event.EventProcess;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
@@ -120,13 +121,15 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
             String sql = "SHOW MASTER STATUS;";
             try {
                 executeQuery(sql, resultSet -> {
-                    String file = resultSet.getString("File");
-                    Long position = resultSet.getLong("Position");
-                    String gtidSet = resultSet.getString("Executed_Gtid_Set");
-                    if (gtidSet == null) {
-                        increPositionService.create(new MysqlIncrePosition(file, position).toString());
-                    } else {
-                        increPositionService.create(new MysqlIncrePosition(file, gtidSet).toString());
+                    while (resultSet.next()) {
+                        String file = resultSet.getString("File");
+                        Long position = resultSet.getLong("Position");
+                        String gtidSet = resultSet.getString("Executed_Gtid_Set");
+                        if (StringUtils.isNotEmpty(gtidSet)) {
+                            increPositionService.create(new MysqlIncrePosition(file, gtidSet).toString());
+                        } else {
+                            increPositionService.create(new MysqlIncrePosition(file, position).toString());
+                        }
                     }
                 });
                 return true;
@@ -138,18 +141,17 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
         return false;
     }
 
-    private static String CHECK_GRANT_SQL = "SHOW GRANTS FOR %s@'%s'";
+    private static String CHECK_GRANT_SQL = "SELECT * FROM mysql.user WHERE User = '%s'";
     protected boolean checkPermissions() {
         AtomicBoolean result = new AtomicBoolean(false);
-        String sql = String.format(CHECK_GRANT_SQL, waterGapContext.getGlobalConfig().getSourceConfig().getUser(),
-                waterGapContext.getGlobalConfig().getSourceConfig().getIp());
+        String sql = String.format(CHECK_GRANT_SQL, waterGapContext.getGlobalConfig().getSourceConfig().getUser());
         try {
             executeQuery(sql, (resultSet) -> {
                 while (resultSet.next()) {
-                    String grants = resultSet.getString(1);
-                    if (grants.contains("ALL PRIVILEGES")) {
-                        result.set(true);
-                    } else if (grants.contains("REPLICATION SLAVE") && grants.contains("REPLICATION CLIENT")) {
+                    String slavePriv = resultSet.getString("Repl_slave_priv");
+                    String clientPriv = resultSet.getString("Repl_client_priv");
+
+                    if ("Y".equals(slavePriv) && "Y".equals(clientPriv)) {
                         result.set(true);
                     }
                 }

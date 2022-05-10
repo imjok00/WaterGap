@@ -34,9 +34,11 @@ public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Ru
 
     private WaterGapPiping ackPiping;
 
+    private WaterGapContext waterGapContext;
+
     @Override
     public void init(WaterGapContext waterGapContext) {
-
+        this.waterGapContext = waterGapContext;
         switch (waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType()) {
             case MySQL:
                 LOG.info("# Init MySQL pumper...");
@@ -57,6 +59,7 @@ public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Ru
         ((OutFallDrainer)fullDrainer).injectPiping(pumpPiping, ackPiping);
         ((WaterGapLifeCycle)fullPumper).init(waterGapContext);
         ((WaterGapLifeCycle)fullDrainer).init(waterGapContext);
+        ((WaterGapLifeCycle)increLogPumper).init(waterGapContext);
     }
 
     @Override
@@ -78,10 +81,7 @@ public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Ru
 
     @Override
     public void waitForShutdown() throws InterruptedException {
-        WaterGapLifeCycle pumpLife = (WaterGapLifeCycle) fullPumper;
-        while (pumpLife.isStart()) {
-            Thread.sleep(1000); // sleep 1s
-        }
+        waterGapContext.getFullCntLatch().await();
         // 全量结束
         ((WaterGapLifeCycle) fullPumper).destroy();
         // 增量开始

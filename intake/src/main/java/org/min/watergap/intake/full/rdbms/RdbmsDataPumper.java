@@ -111,6 +111,7 @@ public abstract class RdbmsDataPumper extends DBPumper {
                 && MigrateStageORM.StageEnum.FULL_OVER.toString()
                 .equals(ThreadLocalUtils.getMigrateStageService().queryOne().getStage())) {
             stop();
+            waterGapContext.getFullCntLatch().countDown();
             return true;
         }
         return false;

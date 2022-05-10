@@ -16,7 +16,7 @@ public class MigrateModeFactory {
             case ONLY_FULL:
                 starter = new FullStarter();
                 break;
-            case TRANSFER:
+            case FULL_AND_INC:
                 starter = new FullAndIncreStarter();
                 break;
             default:

@@ -30,9 +30,11 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
 
     private WaterGapPiping ackPiping;
 
+    private WaterGapContext waterGapContext;
+
     @Override
     public void init(WaterGapContext waterGapContext) {
-
+        this.waterGapContext = waterGapContext;
         switch (waterGapContext.getGlobalConfig().getSourceConfig().getDatabaseType()) {
             case MySQL:
                 LOG.info("# Init MySQL pumper...");
@@ -65,10 +67,7 @@ public class FullStarter extends AbstractWaterGapLifeCycle implements Runner {
 
     @Override
     public void waitForShutdown() throws InterruptedException {
-        WaterGapLifeCycle pumpLife = (WaterGapLifeCycle) fullPumper;
-        while (pumpLife.isStart()) {
-            Thread.sleep(1000); // sleep 1s
-        }
+        waterGapContext.getFullCntLatch().await();
     }
 
     @Override

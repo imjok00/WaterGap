@@ -20,7 +20,7 @@ public class WaterGapContext {
 
     private WaterGapGlobalConfig globalConfig;
 
-    private CountDownLatch increCnt = new CountDownLatch(1);
+    private CountDownLatch fullStarterCntLatch = new CountDownLatch(1);
 
     public WaterGapContext(WaterGapGlobalConfig globalConfig) {
         this.globalConfig = globalConfig;
@@ -53,7 +53,7 @@ public class WaterGapContext {
         return globalConfig.getSqlSelectLimit();
     }
 
-    public CountDownLatch getIncreCnt() {
-        return increCnt;
+    public CountDownLatch getFullCntLatch() {
+        return fullStarterCntLatch;
     }
 }

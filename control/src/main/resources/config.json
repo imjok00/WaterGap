@@ -1,7 +1,7 @@
 {
-  "mode" : "ONLY_FULL",
+  "mode" : "FULL_AND_INC",
   "sqlLimit" : 2,
-  "target" : {
+  "source" : {
     "dbType" : "MySQL",
     "ip" : "127.0.0.1",
     "port" : 13306,
@@ -10,7 +10,7 @@
     "password" : "123456"
 
   },
-  "source" : {
+  "target" : {
     "dbType" : "MySQL",
     "ip" : "127.0.0.1",
     "port" : 23306,

@@ -3,14 +3,14 @@
     <Appenders>
         <RollingFile name="infoRollingFile" fileName="logs/info.log" filePattern="logs/info-%d{MM-dd-yyyy}.log.gz">
             <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy />
             </Policies>
         </RollingFile>
         <RollingFile name="warnRollingFile" fileName="logs/warn.log" filePattern="logs/warn-%d{MM-dd-yyyy}.log.gz">
             <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy />
             </Policies>
@@ -23,7 +23,7 @@
             </Policies>
         </RollingFile>
         <Console name="STDOUT" target="SYSTEM_OUT" ignoreExceptions="false">
-            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %m%n"/>
         </Console>
     </Appenders>
     <Loggers>
