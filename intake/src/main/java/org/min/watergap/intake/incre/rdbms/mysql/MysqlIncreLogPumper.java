@@ -1,6 +1,5 @@
 package org.min.watergap.intake.incre.rdbms.mysql;
 
-import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
@@ -8,13 +7,13 @@ import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.orm.IncrePositionORM;
 import org.min.watergap.common.local.storage.orm.service.IncrePositionService;
 import org.min.watergap.common.position.Position;
+import org.min.watergap.common.position.incre.MysqlGTIDSet;
 import org.min.watergap.common.position.incre.MysqlIncrePosition;
 import org.min.watergap.common.utils.StringUtils;
 import org.min.watergap.intake.incre.IncreLogPumper;
-import org.min.watergap.intake.incre.rdbms.mysql.event.EventProcess;
+import org.min.watergap.intake.incre.rdbms.mysql.parser.driver.MysqlConnection;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
-import org.min.watergap.piping.translator.WaterGapPiping;
-import org.min.watergap.piping.translator.impl.IncreLogPositionBasePipingData;
+import org.min.watergap.piping.translator.impl.IncreLogPositionPipingData;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,38 +30,41 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
 
     private SingleThreadWorkGroup workGroup;
 
-    private WaterGapPiping increMPiping;
+    private MysqlConnection mysqlConnection;
 
     @Override
     public void init(WaterGapContext waterGapContext) {
         super.init(waterGapContext);
         increPositionService = new IncrePositionService();
-        increMPiping = new WaterGapPiping();
+        mysqlConnection = new MysqlConnection(waterGapContext);
     }
 
     @Override
     public void destroy() {
+        try {
+            mysqlConnection.disconnect();
+        } catch (IOException e) {
+            LOG.error("mysql connect disconnect fail", e);
+        }
+
         workGroup.destroy();
     }
 
     @Override
     public void pump() throws WaterGapException {
-        workGroup = new SingleThreadWorkGroup(pipingData -> {
-            BinaryLogClient client = getBinaryLogClient();
-            try {
-                sendPosition(client, (IncreLogPositionBasePipingData) pipingData);
-            } catch (IOException e) {
-                throw new WaterGapException("send position to db error", e);
-            }
-            return 0;
-        }, increMPiping);
-        try {
-            increMPiping.put(new IncreLogPositionBasePipingData(getLastIncrePosition()));
-        } catch (InterruptedException interruptedException) {
-            LOG.error("can not get incre log position, be interrupt ", interruptedException);
-            destroy();
-        }
+        startPipingThread();
+    }
 
+    private void startPipingThread() {
+        new Thread(() -> {
+            Position position = getLastIncrePosition();
+            try {
+                sendPosition((IncreLogPositionPipingData) position);
+            } catch (Exception e) {
+                LOG.error("start fetch incre log error ", e);
+                destroy();
+            }
+        }).start();
     }
 
     private Position getLastIncrePosition() {
@@ -72,24 +74,15 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
        return increPosition;
     }
 
-    private void sendPosition(BinaryLogClient client, IncreLogPositionBasePipingData positionBasePipingData) throws IOException {
+    private void sendPosition(IncreLogPositionPipingData positionBasePipingData) throws Exception {
         MysqlIncrePosition increPosition = (MysqlIncrePosition) positionBasePipingData.getPosition();
-        if (increPosition.isGtidMode()) {
-            client.setGtidSet(increPosition.getVal());
-            client.setUseBinlogFilenamePositionInGtidMode(true);
-        } else {
-            client.setBinlogFilename(increPosition.getFile());
-            client.setBinlogPosition(increPosition.getPosition());
-        }
-        client.registerEventListener(new EventProcess());
-        client.connect();
-    }
 
-    private BinaryLogClient getBinaryLogClient() {
-        return new BinaryLogClient(waterGapContext.getGlobalConfig().getSourceConfig().getIp(),
-                waterGapContext.getGlobalConfig().getSourceConfig().getPort(),
-                waterGapContext.getGlobalConfig().getSourceConfig().getUser(),
-                waterGapContext.getGlobalConfig().getSourceConfig().getPassword());
+        if (increPosition.isGtidMode()) {
+            mysqlConnection.dump((MysqlGTIDSet) increPosition.getUuidSet(), increMPiping);
+        } else {
+            mysqlConnection.dump(increPosition.getFile(), increPosition.getPosition(), increMPiping);
+        }
+
     }
 
     @Override

@@ -7,7 +7,7 @@ import org.min.watergap.common.rdbms.struct.StructType;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.intake.full.rdbms.RdbmsDBStructPumper;
 import org.min.watergap.piping.translator.PipingData;
-import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataPipingData;
 import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
 
@@ -35,7 +35,7 @@ public class MysqlDBAllTypePumper extends RdbmsDBStructPumper {
 
 
     @Override
-    protected String generateSelectSQL(FullTableDataBasePipingData tableData) {
+    protected String generateSelectSQL(FullTableDataPipingData tableData) {
         StringBuilder selectSQL = new StringBuilder("SELECT ");
         selectSQL.append(tableData.getColumns().stream()
                 .map(TableStructBasePipingData.Column::getColumnName)

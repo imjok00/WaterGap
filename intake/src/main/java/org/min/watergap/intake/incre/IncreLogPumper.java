@@ -2,6 +2,7 @@ package org.min.watergap.intake.incre;
 
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.full.DBPumper;
+import org.min.watergap.piping.translator.WaterGapPiping;
 
 /**
  * 增量日志拉取类
@@ -10,8 +11,14 @@ import org.min.watergap.intake.full.DBPumper;
  */
 public abstract class IncreLogPumper extends DBPumper implements Pumper {
 
+    protected WaterGapPiping increMPiping;
+
     public abstract boolean check();
 
     public abstract boolean prepare();
+
+    public void injectIncrePiping(WaterGapPiping piping) {
+        increMPiping = piping;
+    }
 
 }

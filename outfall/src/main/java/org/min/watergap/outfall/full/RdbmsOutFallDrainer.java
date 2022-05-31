@@ -10,7 +10,7 @@ import org.min.watergap.outfall.OutFallDrainer;
 import org.min.watergap.outfall.convertor.ConvertorChooser;
 import org.min.watergap.outfall.convertor.StructConvertor;
 import org.min.watergap.piping.translator.PipingData;
-import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataPipingData;
 import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
 import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
@@ -49,7 +49,7 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
                 });
                 break;
             case FULL_DATA:
-                FullTableDataBasePipingData tableData = (FullTableDataBasePipingData) data;
+                FullTableDataPipingData tableData = (FullTableDataPipingData) data;
                 dataExecutor.executeBatch(tableData.getSchemaName(), structConvertor.convert(tableData), tableData.getContain(), () -> {
                     ThreadLocalUtils.getFullTableDataPositionService().updatePosition(
                             tableData.getPosition(), tableData.getSchemaName(), tableData.getTableName());
@@ -64,7 +64,7 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
     }
 
     private void ackAndStartFullTableData(TableStructBasePipingData tableStruct) {
-        FullTableDataBasePipingData fullTableDataBasePipingData = new FullTableDataBasePipingData(tableStruct);
+        FullTableDataPipingData fullTableDataBasePipingData = new FullTableDataPipingData(tableStruct);
         fullTableDataBasePipingData.setNeedInit(true);
         ack(fullTableDataBasePipingData);
     }
@@ -75,7 +75,7 @@ public class RdbmsOutFallDrainer extends OutFallDrainer {
                 ThreadLocalUtils.getMigrateStageService()
                         .updateStage(MigrateStageORM.StageEnum.SCHEMA_MIGRATED.toString());
             }
-        } else if (pipingData instanceof FullTableDataBasePipingData) {// 表数据更新
+        } else if (pipingData instanceof FullTableDataPipingData) {// 表数据更新
             if(ThreadLocalUtils.getFullTableDataPositionService().isAllComplete()) {
                 ThreadLocalUtils.getMigrateStageService()
                         .updateStage(MigrateStageORM.StageEnum.TABLE_MIGRATED.toString());

@@ -11,7 +11,7 @@ import org.min.watergap.common.utils.ThreadLocalUtils;
 import org.min.watergap.intake.full.DBPumper;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
 import org.min.watergap.piping.translator.WaterGapPiping;
-import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataPipingData;
 import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
 import java.sql.ResultSet;
@@ -68,14 +68,14 @@ public abstract class RdbmsDataPumper extends DBPumper {
         }
     }
 
-    protected void startNextDataPumper(FullTableDataBasePipingData tableData) throws InterruptedException, SQLException {
+    protected void startNextDataPumper(FullTableDataPipingData tableData) throws InterruptedException, SQLException {
         if (tableData.isNeedInit()) { // 判断是否半路重启过
             tryUpdatePosition(tableData);
         }
         String selectSql = generateSelectSQL(tableData);
         executeStreamQuery(tableData.getSchemaName(), selectSql, (resultSet) -> {
-            FullTableDataBasePipingData.ColumnValContain contain
-                    = new FullTableDataBasePipingData.ColumnValContain(tableData.getColumns());
+            FullTableDataPipingData.ColumnValContain contain
+                    = new FullTableDataPipingData.ColumnValContain(tableData.getColumns());
             while (resultSet.next()) {
                 Map<String, Object> map = new HashMap<>();
                 for (TableStructBasePipingData.Column column : tableData.getColumns()) {
@@ -98,7 +98,7 @@ public abstract class RdbmsDataPumper extends DBPumper {
     /**
      * position不应低于本地存储position
      */
-    protected void tryUpdatePosition(FullTableDataBasePipingData tableData) throws SQLException {
+    protected void tryUpdatePosition(FullTableDataPipingData tableData) throws SQLException {
         String positionStr = ThreadLocalUtils.getFullTableDataPositionService()
                 .queryLastPosition(tableData.getSchemaName(), tableData.getTableName());
         if (StringUtils.isNotEmpty(positionStr)) {
@@ -176,6 +176,6 @@ public abstract class RdbmsDataPumper extends DBPumper {
         }
     }
 
-    protected abstract String generateSelectSQL(FullTableDataBasePipingData tableData);
+    protected abstract String generateSelectSQL(FullTableDataPipingData tableData);
 
 }

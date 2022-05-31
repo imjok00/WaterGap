@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * @Create by metaX.h on 2022/3/20 20:53
  */
-public class FullTableDataBasePipingData extends TableStructBasePipingData {
+public class FullTableDataPipingData extends TableStructBasePipingData {
 
     private Position position;
 
@@ -22,7 +22,7 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
 
     private boolean needInit;
 
-    public FullTableDataBasePipingData(TableStructBasePipingData tableStructBasePipingData) {
+    public FullTableDataPipingData(TableStructBasePipingData tableStructBasePipingData) {
         super(tableStructBasePipingData.getSchemaName(), tableStructBasePipingData.getTableName());
         setSourceCreateSql(tableStructBasePipingData.getSourceCreateSql());
         setColumns(tableStructBasePipingData.getColumns());
@@ -32,7 +32,7 @@ public class FullTableDataBasePipingData extends TableStructBasePipingData {
         
     }
 
-    public FullTableDataBasePipingData(String schemaName, String tableName) {
+    public FullTableDataPipingData(String schemaName, String tableName) {
         super(schemaName, tableName);
     }
 

@@ -1,20 +1,103 @@
 package org.min.watergap.common.position.incre;
 
+import org.min.watergap.common.utils.ByteHelper;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * MYSQL UUID:seque 格式
- *
- * @Create by metaX.h on 2022/4/30 11:24
+ * Created by hiwjd on 2018/4/23. hiwjd0@gmail.com
  */
 public class UUIDSet {
 
-    public UUID SID;
+    public UUID           SID;
     public List<Interval> intervals;
 
+    public byte[] encode() throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(SID.getMostSignificantBits());
+        bb.putLong(SID.getLeastSignificantBits());
+
+        out.write(bb.array());
+
+        ByteHelper.writeUnsignedInt64LittleEndian(intervals.size(), out);
+
+        for (Interval interval : intervals) {
+            ByteHelper.writeUnsignedInt64LittleEndian(interval.start, out);
+            ByteHelper.writeUnsignedInt64LittleEndian(interval.stop, out);
+        }
+
+        return out.toByteArray();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (this == o) return true;
+
+        UUIDSet us = (UUIDSet) o;
+        Collections.sort(intervals);
+        Collections.sort(us.intervals);
+        if (SID.equals(us.SID) && intervals.equals(us.intervals)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static class Interval implements Comparable<Interval> {
+
+        public long start;
+        public long stop;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Interval interval = (Interval) o;
+
+            if (start != interval.start) return false;
+            return stop == interval.stop;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (start ^ (start >>> 32));
+            result = 31 * result + (int) (stop ^ (stop >>> 32));
+            return result;
+        }
+
+        @Override
+        public int compareTo(Interval o) {
+            if (equals(o)) {
+                return 1;
+            }
+            return Long.compare(start, o.start);
+        }
+    }
+
+    /**
+     * 解析如下格式字符串为UUIDSet: 726757ad-4455-11e8-ae04-0242ac110002:1 => UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:2}]}
+     * 726757ad-4455-11e8-ae04-0242ac110002:1-3 => UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4}]}
+     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:4 UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:5}]}
+     * 726757ad-4455-11e8-ae04-0242ac110002:1-3:7-9 UUIDSet{SID:
+     * 726757ad-4455-11e8-ae04-0242ac110002, intervals: [{start:1, stop:4},
+     * {start:7, stop:10}]}
+     *
+     * @param str
+     * @return
+     */
     public static UUIDSet parse(String str) {
         String[] ss = str.split(":");
 
@@ -109,37 +192,5 @@ public class UUIDSet {
         }
 
         return combined;
-    }
-
-    public static class Interval implements Comparable<Interval> {
-
-        public long start;
-        public long stop;
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Interval interval = (Interval) o;
-
-            if (start != interval.start) return false;
-            return stop == interval.stop;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = (int) (start ^ (start >>> 32));
-            result = 31 * result + (int) (stop ^ (stop >>> 32));
-            return result;
-        }
-
-        @Override
-        public int compareTo(Interval o) {
-            if (equals(o)) {
-                return 1;
-            }
-            return Long.compare(start, o.start);
-        }
     }
 }

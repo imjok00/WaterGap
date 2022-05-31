@@ -2,7 +2,7 @@ package org.min.watergap.outfall.convertor;
 
 import org.min.watergap.common.utils.StringUtils;
 import org.min.watergap.piping.translator.impl.BasePipingData;
-import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataPipingData;
 import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
 import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
@@ -39,7 +39,7 @@ public class MysqlStructConvertor implements StructConvertor {
                 // 表结构构建
                 return generateMysqlCreateTable(tableStruct);
             case FULL_DATA:
-                FullTableDataBasePipingData tableData = (FullTableDataBasePipingData) pipingData;
+                FullTableDataPipingData tableData = (FullTableDataPipingData) pipingData;
                 return generateMysqlInsert(tableData);
         }
         return null;
@@ -228,7 +228,7 @@ public class MysqlStructConvertor implements StructConvertor {
         return "";
     }
 
-    private String generateMysqlInsert(FullTableDataBasePipingData tableData) {
+    private String generateMysqlInsert(FullTableDataPipingData tableData) {
         String insertTemplate = "INSERT INTO %s (%s) values (%s) ON DUPLICATE KEY UPDATE ";
         String columnsStr = tableData.getColumns().stream()
                 .map(TableStructBasePipingData.Column::getColumnName).collect(Collectors.joining("`,`"));

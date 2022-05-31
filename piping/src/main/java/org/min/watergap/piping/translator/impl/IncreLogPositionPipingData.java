@@ -8,11 +8,11 @@ import org.min.watergap.common.rdbms.struct.StructType;
  *
  * @Create by metaX.h on 2022/5/1 23:55
  */
-public class IncreLogPositionBasePipingData extends BasePipingData {
+public class IncreLogPositionPipingData extends BasePipingData {
 
     private Position position;
 
-    public IncreLogPositionBasePipingData(Position position) {
+    public IncreLogPositionPipingData(Position position) {
         this.position = position;
     }
 

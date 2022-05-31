@@ -10,7 +10,7 @@ import org.min.watergap.common.utils.StringUtils;
 import org.min.watergap.common.utils.ThreadLocalUtils;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
 import org.min.watergap.piping.translator.PipingData;
-import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataPipingData;
 import org.min.watergap.piping.translator.impl.SchemaStructBasePipingData;
 import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
@@ -55,7 +55,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                         }
                         break;
                     case FULL_DATA: /* 数据更新以后回调,进入下一part提取 */
-                        FullTableDataBasePipingData tableDataBasePipingData = (FullTableDataBasePipingData) pipingData;
+                        FullTableDataPipingData tableDataBasePipingData = (FullTableDataPipingData) pipingData;
                         try {
                             startNextDataPumper(tableDataBasePipingData);
                         } catch (InterruptedException e) {

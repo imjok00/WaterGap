@@ -7,6 +7,6 @@ package org.min.watergap.common.rdbms.struct;
  */
 public enum StructType {
 
-    SCHEMA, TABLE, FULL_DATA, INCRE_POSITION;
+    SCHEMA, TABLE, FULL_DATA, INCRE_POSITION, INCRE_DATA;
 
 }

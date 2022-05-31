@@ -7,7 +7,7 @@ import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.enums.PumpExceptionEnum;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
-import org.min.watergap.piping.translator.impl.FullTableDataBasePipingData;
+import org.min.watergap.piping.translator.impl.FullTableDataPipingData;
 import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
 import java.sql.*;
@@ -34,7 +34,7 @@ public class RdbmsDataExecutor extends AbstractWaterGapLifeCycle implements Data
     }
 
     @Override
-    public int executeBatch(String schema, String sql, FullTableDataBasePipingData.ColumnValContain contain, PipDataAck callback) throws WaterGapException {
+    public int executeBatch(String schema, String sql, FullTableDataPipingData.ColumnValContain contain, PipDataAck callback) throws WaterGapException {
         Connection connection = null;
         PreparedStatement statement = null;
         boolean executeSuccess = false;

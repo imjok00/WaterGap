@@ -15,7 +15,7 @@ public class MysqlIncrePosition implements Position {
     private String file;
     private Long position;
 
-    private UUIDSet uuidSet;
+    private GTIDSet uuidSet;
 
     public MysqlIncrePosition() {}
 
@@ -28,7 +28,7 @@ public class MysqlIncrePosition implements Position {
     public MysqlIncrePosition(String file, String uuidset) {
         this.isGtidMode = true;
         this.file = file;
-        this.uuidSet = UUIDSet.parse(uuidset);
+        this.uuidSet = MysqlGTIDSet.parse(uuidset);
     }
 
     @Override
@@ -90,11 +90,8 @@ public class MysqlIncrePosition implements Position {
         this.position = position;
     }
 
-    public UUIDSet getUuidSet() {
+    public GTIDSet getUuidSet() {
         return uuidSet;
     }
 
-    public void setUuidSet(UUIDSet uuidSet) {
-        this.uuidSet = uuidSet;
-    }
 }
