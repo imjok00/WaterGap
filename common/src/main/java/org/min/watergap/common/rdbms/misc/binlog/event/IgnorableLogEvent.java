@@ -1,7 +1,7 @@
 package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 /**
  * <pre>
@@ -24,7 +24,7 @@ import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
  * @version 1.0.3
  * @since mysql 5.6
  */
-public class IgnorableLogEvent extends LogEvent {
+public class IgnorableLogEvent extends BaseLogEvent {
 
     public IgnorableLogEvent(LogHeader header, LogBuffer buffer, FormatDescriptionLogEvent descriptionEvent){
         super(header);

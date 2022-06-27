@@ -3,7 +3,7 @@ package org.min.watergap.common.rdbms.misc.binlog.event.mariadb;
 import org.min.watergap.common.position.incre.MariaGTIDSet;
 import org.min.watergap.common.position.incre.MariaGtid;
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 import org.min.watergap.common.rdbms.misc.binlog.event.FormatDescriptionLogEvent;
 import org.min.watergap.common.rdbms.misc.binlog.event.LogHeader;
 
@@ -13,7 +13,7 @@ import org.min.watergap.common.rdbms.misc.binlog.event.LogHeader;
  * @author jianghang 2014-1-20 下午4:51:50
  * @since 1.0.17
  */
-public class MariaGtidListLogEvent extends LogEvent {
+public class MariaGtidListLogEvent extends BaseLogEvent {
 
     private MariaGTIDSet mariaGTIDSet;
     /**

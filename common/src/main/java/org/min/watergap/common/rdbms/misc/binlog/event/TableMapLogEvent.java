@@ -1,7 +1,7 @@
 package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -300,7 +300,7 @@ import java.util.List;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public final class TableMapLogEvent extends LogEvent {
+public final class TableMapLogEvent extends BaseLogEvent {
 
     /**
      * Fixed data part:
@@ -678,12 +678,12 @@ public final class TableMapLogEvent extends LogEvent {
 
         int index = 0;
         for (int i = 0; i < columnCnt; i++) {
-            if (set && getRealType(columnInfo[i].type, columnInfo[i].meta) == LogEvent.MYSQL_TYPE_SET) {
+            if (set && getRealType(columnInfo[i].type, columnInfo[i].meta) == BaseLogEvent.MYSQL_TYPE_SET) {
                 columnInfo[i].set_enum_values = datas.get(index);
                 index++;
             }
 
-            if (!set && getRealType(columnInfo[i].type, columnInfo[i].meta) == LogEvent.MYSQL_TYPE_ENUM) {
+            if (!set && getRealType(columnInfo[i].type, columnInfo[i].meta) == BaseLogEvent.MYSQL_TYPE_ENUM) {
                 columnInfo[i].set_enum_values = datas.get(index);
                 index++;
             }
@@ -702,7 +702,7 @@ public final class TableMapLogEvent extends LogEvent {
 
         int index = 0;
         for (int i = 0; i < columnCnt; i++) {
-            if (columnInfo[i].type == LogEvent.MYSQL_TYPE_GEOMETRY) {
+            if (columnInfo[i].type == BaseLogEvent.MYSQL_TYPE_GEOMETRY) {
                 columnInfo[i].geoType = datas.get(index);
                 index++;
             }
@@ -765,7 +765,7 @@ public final class TableMapLogEvent extends LogEvent {
     }
 
     private int getRealType(int type, int meta) {
-        if (type == LogEvent.MYSQL_TYPE_STRING) {
+        if (type == BaseLogEvent.MYSQL_TYPE_STRING) {
             if (meta >= 256) {
                 int byte0 = meta >> 8;
                 if ((byte0 & 0x30) != 0x30) {
@@ -773,9 +773,9 @@ public final class TableMapLogEvent extends LogEvent {
                     type = byte0 | 0x30;
                 } else {
                     switch (byte0) {
-                        case LogEvent.MYSQL_TYPE_SET:
-                        case LogEvent.MYSQL_TYPE_ENUM:
-                        case LogEvent.MYSQL_TYPE_STRING:
+                        case BaseLogEvent.MYSQL_TYPE_SET:
+                        case BaseLogEvent.MYSQL_TYPE_ENUM:
+                        case BaseLogEvent.MYSQL_TYPE_STRING:
                             type = byte0;
                     }
                 }

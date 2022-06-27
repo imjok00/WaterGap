@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.min.watergap.common.local.storage.orm.FullTableStructORM;
 import org.min.watergap.common.rdbms.struct.StructType;
+import org.min.watergap.common.sql.parse.DdlResult;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +38,15 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
             return "";
         }
         return new Gson().toJson(columns);
+    }
+
+    public Column getColumnByName(String name) {
+        for (Column column : columns) {
+            if (column.getColumnName().equals(name)) {
+                return column;
+            }
+        }
+        return null;
     }
 
     public void initColumns() {
@@ -175,6 +185,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
     }
 
+    public void applyTableMeta(List<DdlResult> list) {
+
+    }
+
     @Override
     public StructType getType() {
         return StructType.TABLE;
@@ -273,6 +287,10 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
         public void setTypeName(String typeName) {
             this.typeName = typeName;
+        }
+
+        public boolean isUnsigned() {
+            return typeName.contains("UNSIGNED");
         }
 
         public boolean isFullKey() {

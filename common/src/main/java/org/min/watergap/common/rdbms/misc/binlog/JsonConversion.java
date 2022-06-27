@@ -1,6 +1,6 @@
 package org.min.watergap.common.rdbms.misc.binlog;
 
-import org.min.watergap.intake.incre.rdbms.mysql.parser.dbsync.event.RowsLogBuffer;
+import org.min.watergap.common.rdbms.misc.binlog.event.RowsLogBuffer;
 
 /**
  * 处理下MySQL json二进制转化为可读的字符串
@@ -318,12 +318,12 @@ public class JsonConversion {
                     break;
                 case OPAQUE:
                     String text = null;
-                    if (m_field_type == LogEvent.MYSQL_TYPE_NEWDECIMAL) {
+                    if (m_field_type == BaseLogEvent.MYSQL_TYPE_NEWDECIMAL) {
                         int precision = m_data.getInt8();
                         int scale = m_data.getInt8();
                         text = m_data.getDecimal(precision, scale).toPlainString();
                         buf.append(text);
-                    } else if (m_field_type == LogEvent.MYSQL_TYPE_TIME) {
+                    } else if (m_field_type == BaseLogEvent.MYSQL_TYPE_TIME) {
                         long packed_value = m_data.getLong64();
                         if (packed_value == 0) {
                             text = "00:00:00";
@@ -357,8 +357,8 @@ public class JsonConversion {
                             text = builder.toString();
                         }
                         buf.append('"').append(text).append('"');
-                    } else if (m_field_type == LogEvent.MYSQL_TYPE_DATE || m_field_type == LogEvent.MYSQL_TYPE_DATETIME
-                               || m_field_type == LogEvent.MYSQL_TYPE_TIMESTAMP) {
+                    } else if (m_field_type == BaseLogEvent.MYSQL_TYPE_DATE || m_field_type == BaseLogEvent.MYSQL_TYPE_DATETIME
+                               || m_field_type == BaseLogEvent.MYSQL_TYPE_TIMESTAMP) {
                         long packed_value = m_data.getLong64();
                         if (packed_value == 0) {
                             text = "0000-00-00 00:00:00";

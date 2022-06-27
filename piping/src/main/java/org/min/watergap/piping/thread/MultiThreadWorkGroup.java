@@ -7,15 +7,23 @@ import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
 import org.min.watergap.common.position.incre.GTIDSet;
+import org.min.watergap.common.rdbms.misc.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.LogContext;
+import org.min.watergap.common.rdbms.misc.binlog.LogDecoder;
+import org.min.watergap.common.rdbms.misc.binlog.event.DeleteRowsLogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.event.FormatDescriptionLogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.event.UpdateRowsLogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.event.WriteRowsLogEvent;
 import org.min.watergap.common.thread.CustomThreadFactory;
-import org.min.watergap.intake.incre.rdbms.mysql.binlog.buffer.EventTransactionBuffer;
-import org.min.watergap.intake.incre.rdbms.mysql.parser.dbsync.LogBuffer;
-import org.min.watergap.intake.incre.rdbms.mysql.parser.dbsync.LogContext;
-import org.min.watergap.intake.incre.rdbms.mysql.parser.dbsync.LogEvent;
-import org.min.watergap.intake.incre.rdbms.mysql.parser.dbsync.event.FormatDescriptionLogEvent;
-import org.min.watergap.intake.incre.rdbms.mysql.parser.driver.MysqlConnection;
+import org.min.watergap.piping.convertor.mysql.MysqlIncreLogConvert;
+import org.min.watergap.piping.translator.PipingData;
+import org.min.watergap.piping.translator.PipingEvent;
+import org.min.watergap.piping.translator.WaterGapTransactionPiping;
 import org.min.watergap.piping.translator.impl.IncreLogEventPipingData;
+import org.min.watergap.piping.translator.impl.TableStructBasePipingData;
 
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +35,7 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
     private static final Logger LOG = LogManager.getLogger(MultiThreadWorkGroup.class);
 
     private static final int                  maxFullTimes    = 10;
-    private EventTransactionBuffer transactionBuffer;
-    private MysqlConnection                   connection;
+    private WaterGapTransactionPiping transactionBuffer;
 
     private int                               parserThreadCount;
     private int                               ringBufferSize;
@@ -47,7 +54,7 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
     protected boolean                         filterDmlDelete = false;
 
     public MultiThreadWorkGroup(int ringBufferSize, int parserThreadCount,
-                                EventTransactionBuffer transactionBuffer, String destination,
+                                WaterGapTransactionPiping transactionBuffer, String destination,
                                 boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
         this.ringBufferSize = ringBufferSize;
         this.parserThreadCount = parserThreadCount;
@@ -116,7 +123,7 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
     }
 
     public void setBinlogChecksum(int binlogChecksum) {
-        if (binlogChecksum != LogEvent.BINLOG_CHECKSUM_ALG_OFF) {
+        if (binlogChecksum != BaseLogEvent.BINLOG_CHECKSUM_ALG_OFF) {
             logContext.setFormatDescription(new FormatDescriptionLogEvent(4, binlogChecksum));
         }
     }
@@ -155,18 +162,7 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
         super.stop();
     }
 
-    public boolean publish(LogBuffer buffer) {
-        return this.publish(buffer, null);
-    }
-
-    /**
-     * 网络数据投递
-     */
     public boolean publish(LogEvent event) {
-        return this.publish(null, event);
-    }
-
-    private boolean publish(LogBuffer buffer, LogEvent event) {
         if (!isStart()) {
             return false;
         }
@@ -178,11 +174,8 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
             try {
                 long next = disruptorMsgBuffer.tryNext();
                 MessageEvent data = disruptorMsgBuffer.get(next);
-                if (buffer != null) {
-                    data.setBuffer(buffer);
-                } else {
-                    data.setEvent(event);
-                }
+                data.setOriginEvent(event);
+
                 disruptorMsgBuffer.publish(next);
                 if (fullTimes > 0) {
                     eventsPublishBlockingTime.addAndGet(System.nanoTime() - blockingStart);
@@ -219,15 +212,25 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
 
     static class MessageEvent {
 
-        private IncreLogEventPipingData logEvent;
+        private LogEvent originEvent;
+        private PipingEvent pipingEvent;
         private boolean          needDmlParse = false;
+        private PipingData tableMeta;// 表结构
 
-        public IncreLogEventPipingData getLogEvent() {
-            return logEvent;
+        public LogEvent getOriginEvent() {
+            return originEvent;
         }
 
-        public void setLogEvent(IncreLogEventPipingData logEvent) {
-            this.logEvent = logEvent;
+        public void setOriginEvent(LogEvent originEvent) {
+            this.originEvent = originEvent;
+        }
+
+        public PipingEvent getPipingEvent() {
+            return pipingEvent;
+        }
+
+        public void setPipingEvent(PipingEvent pipingEvent) {
+            this.pipingEvent = pipingEvent;
         }
 
         public boolean isNeedDmlParse() {
@@ -238,6 +241,13 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
             this.needDmlParse = needDmlParse;
         }
 
+        public PipingData getTableMeta() {
+            return tableMeta;
+        }
+
+        public void setTableMeta(PipingData tableMeta) {
+            this.tableMeta = tableMeta;
+        }
     }
 
     static class SimpleFatalExceptionHandler implements ExceptionHandler {
@@ -257,30 +267,126 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
         }
     }
 
+
+    private class SimpleParserStage implements EventHandler<MessageEvent>, LifecycleAware {
+
+        private LogDecoder decoder;
+        private LogContext context;
+        private MysqlIncreLogConvert logEventConvert;
+
+        public SimpleParserStage(LogContext context){
+            decoder = new LogDecoder(BaseLogEvent.UNKNOWN_EVENT, BaseLogEvent.ENUM_END_EVENT);
+            this.context = context;
+            if (gtidSet != null) {
+                context.setGtidSet(gtidSet);
+            }
+            logEventConvert = new MysqlIncreLogConvert(Charset.defaultCharset());
+        }
+
+        public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
+            try {
+                BaseLogEvent logEvent = (BaseLogEvent) event.getOriginEvent();
+
+                int eventType = logEvent.getHeader().getType();
+                TableStructBasePipingData tableMeta = null;
+                boolean needDmlParse = false;
+                switch (eventType) {
+                    case BaseLogEvent.WRITE_ROWS_EVENT_V1:
+                    case BaseLogEvent.WRITE_ROWS_EVENT:
+                        tableMeta = logEventConvert.parseRowsEventForTableMeta((WriteRowsLogEvent) logEvent);
+                        needDmlParse = true;
+                        break;
+                    case BaseLogEvent.UPDATE_ROWS_EVENT_V1:
+                    case BaseLogEvent.PARTIAL_UPDATE_ROWS_EVENT:
+                    case BaseLogEvent.UPDATE_ROWS_EVENT:
+                        tableMeta = logEventConvert.parseRowsEventForTableMeta((UpdateRowsLogEvent) logEvent);
+                        needDmlParse = true;
+                        break;
+                    case BaseLogEvent.DELETE_ROWS_EVENT_V1:
+                    case BaseLogEvent.DELETE_ROWS_EVENT:
+                        tableMeta = logEventConvert.parseRowsEventForTableMeta((DeleteRowsLogEvent) logEvent);
+                        needDmlParse = true;
+                        break;
+                    case BaseLogEvent.ROWS_QUERY_LOG_EVENT:
+                        needDmlParse = true;
+                        break;
+                }
+                PipingEvent pipingEvent = logEventConvert.convert(logEvent);
+
+                // 记录一下DML的表结构
+                event.setNeedDmlParse(needDmlParse);
+                event.setTableMeta(tableMeta);
+                event.setPipingEvent(pipingEvent);
+            } catch (Throwable e) {
+                throw e;
+            }
+        }
+
+        @Override
+        public void onStart() {
+
+        }
+
+        @Override
+        public void onShutdown() {
+
+        }
+    }
+
+    private class DmlParserStage implements WorkHandler<MessageEvent>, LifecycleAware {
+
+        @Override
+        public void onEvent(MessageEvent event) throws Exception {
+            try {
+                if (event.isNeedDmlParse()) {
+//                    int eventType = event.get().getHeader().getType();
+//                    CanalEntry.Entry entry = null;
+//                    switch (eventType) {
+//                        case LogEvent.ROWS_QUERY_LOG_EVENT:
+//                            entry = logEventConvert.parse(event.getEvent(), false);
+//                            break;
+//                        default:
+//                            // 单独解析dml事件
+//                            entry = logEventConvert.parseRowsEvent((RowsLogEvent) event.getEvent(), event.getTable());
+//                    }
+//
+//                    event.setEntry(entry);
+                }
+            } catch (Throwable e) {
+                throw e;
+            }
+        }
+
+        @Override
+        public void onStart() {
+
+        }
+
+        @Override
+        public void onShutdown() {
+
+        }
+    }
+
     private class SinkStoreStage implements EventHandler<MessageEvent>, LifecycleAware {
 
         public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
             try {
-                if (event.getEvent() != null) {
-                    transactionBuffer.add(event.getEvent());
+                if (event.getPipingEvent() != null) {
+                    transactionBuffer.add((IncreLogEventPipingData)event.getPipingEvent());
                 }
 
-                LogEvent logEvent = event.getEvent();
-                if (connection instanceof MysqlConnection && logEvent.getSemival() == 1) {
-                    // semi ack回报
-                    ((MysqlConnection) connection).sendSemiAck(logEvent.getHeader().getLogFileName(),
-                            logEvent.getHeader().getLogPos());
-                }
+//                LogEvent logEvent = event.getOriginEvent();
+//                if (connection instanceof MysqlConnection && logEvent.getSemival() == 1) {
+//                    // semi ack回报
+//                    ((MysqlConnection) connection).sendSemiAck(logEvent.getHeader().getLogFileName(),
+//                            logEvent.getHeader().getLogPos());
+//                }
 
                 // clear for gc
-                event.setBuffer(null);
-                event.setEvent(null);
-                event.setTable(null);
-                event.setEntry(null);
                 event.setNeedDmlParse(false);
             } catch (Throwable e) {
-                exception = new CanalParseException(e);
-                throw exception;
+                throw e;
             }
         }
 
@@ -302,12 +408,8 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
         }
     }
 
-    public void setTransactionBuffer(EventTransactionBuffer transactionBuffer) {
+    public void setTransactionBuffer(WaterGapTransactionPiping transactionBuffer) {
         this.transactionBuffer = transactionBuffer;
-    }
-
-    public void setConnection(MysqlConnection connection) {
-        this.connection = connection;
     }
 
     public void setEventsPublishBlockingTime(AtomicLong eventsPublishBlockingTime) {

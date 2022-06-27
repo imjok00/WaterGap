@@ -1,7 +1,7 @@
 package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 /**
  * An Intvar_log_event will be created just before a Query_log_event, if the
@@ -31,7 +31,7 @@ import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public final class IntvarLogEvent extends LogEvent {
+public final class IntvarLogEvent extends BaseLogEvent {
 
     /**
      * Fixed data part: Empty

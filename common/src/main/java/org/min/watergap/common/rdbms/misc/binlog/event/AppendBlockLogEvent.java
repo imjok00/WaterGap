@@ -1,7 +1,7 @@
 package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 /**
  * Append_block_log_event.
@@ -9,7 +9,7 @@ import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public class AppendBlockLogEvent extends LogEvent {
+public class AppendBlockLogEvent extends BaseLogEvent {
 
     private final LogBuffer blockBuf;
     private final int       blockLen;

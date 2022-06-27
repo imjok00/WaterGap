@@ -2,7 +2,7 @@ package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.position.incre.GTIDSet;
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -159,7 +159,7 @@ public final class LogHeader {
          * reading a Format_desc (remember that mysqlbinlog starts by assuming
          * that 5.0 logs are in 4.0 format, until it finds a Format_desc).
          */
-        if (descriptionEvent.binlogVersion == 3 && type < LogEvent.FORMAT_DESCRIPTION_EVENT && logPos != 0) {
+        if (descriptionEvent.binlogVersion == 3 && type < BaseLogEvent.FORMAT_DESCRIPTION_EVENT && logPos != 0) {
             /*
              * If log_pos=0, don't change it. log_pos==0 is a marker to mean
              * "don't change rli->group_master_log_pos" (see
@@ -175,7 +175,7 @@ public final class LogHeader {
         }
 
         flags = buffer.getUint16(); // LogEvent.FLAGS_OFFSET
-        if ((type == LogEvent.FORMAT_DESCRIPTION_EVENT) || (type == LogEvent.ROTATE_EVENT)) {
+        if ((type == BaseLogEvent.FORMAT_DESCRIPTION_EVENT) || (type == BaseLogEvent.ROTATE_EVENT)) {
             /*
              * These events always have a header which stops here (i.e. their
              * header is FROZEN).
@@ -190,16 +190,16 @@ public final class LogHeader {
              * master). Then we are done.
              */
 
-            if (type == LogEvent.FORMAT_DESCRIPTION_EVENT) {
+            if (type == BaseLogEvent.FORMAT_DESCRIPTION_EVENT) {
                 int commonHeaderLen = buffer.getUint8(FormatDescriptionLogEvent.LOG_EVENT_MINIMAL_HEADER_LEN
                                                       + FormatDescriptionLogEvent.ST_COMMON_HEADER_LEN_OFFSET);
                 buffer.position(commonHeaderLen + FormatDescriptionLogEvent.ST_SERVER_VER_OFFSET);
                 String serverVersion = buffer.getFixString(FormatDescriptionLogEvent.ST_SERVER_VER_LEN); // ST_SERVER_VER_OFFSET
                 int versionSplit[] = new int[] { 0, 0, 0 };
                 FormatDescriptionLogEvent.doServerVersionSplit(serverVersion, versionSplit);
-                checksumAlg = LogEvent.BINLOG_CHECKSUM_ALG_UNDEF;
+                checksumAlg = BaseLogEvent.BINLOG_CHECKSUM_ALG_UNDEF;
                 if (FormatDescriptionLogEvent.versionProduct(versionSplit) >= FormatDescriptionLogEvent.checksumVersionProduct) {
-                    buffer.position(eventLen - LogEvent.BINLOG_CHECKSUM_LEN - LogEvent.BINLOG_CHECKSUM_ALG_DESC_LEN);
+                    buffer.position(eventLen - BaseLogEvent.BINLOG_CHECKSUM_LEN - BaseLogEvent.BINLOG_CHECKSUM_ALG_DESC_LEN);
                     checksumAlg = buffer.getUint8();
                 }
 
@@ -299,8 +299,8 @@ public final class LogHeader {
     }
 
     private void processCheckSum(LogBuffer buffer) {
-        if (checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != LogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
-            crc = buffer.getUint32(eventLen - LogEvent.BINLOG_CHECKSUM_LEN);
+        if (checksumAlg != BaseLogEvent.BINLOG_CHECKSUM_ALG_OFF && checksumAlg != BaseLogEvent.BINLOG_CHECKSUM_ALG_UNDEF) {
+            crc = buffer.getUint32(eventLen - BaseLogEvent.BINLOG_CHECKSUM_LEN);
         }
     }
 
@@ -320,7 +320,7 @@ public final class LogHeader {
         return gtidMap.get(CURRENT_GTID_LAST_COMMIT);
     }
 
-    public void putGtid(GTIDSet gtidSet, LogEvent gtidEvent) {
+    public void putGtid(GTIDSet gtidSet, BaseLogEvent gtidEvent) {
         if (gtidSet != null) {
             gtidMap.put(GTID_SET_STRING, gtidSet.toString());
             if (gtidEvent != null && gtidEvent instanceof GtidLogEvent) {

@@ -3,7 +3,7 @@ package org.min.watergap.common.rdbms.misc.binlog.event;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
 import org.min.watergap.common.rdbms.misc.binlog.LogContext;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 import java.util.BitSet;
 
@@ -13,7 +13,7 @@ import java.util.BitSet;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public abstract class RowsLogEvent extends LogEvent {
+public abstract class RowsLogEvent extends BaseLogEvent {
 
     /**
      * Fixed data part:
@@ -195,7 +195,7 @@ public abstract class RowsLogEvent extends LogEvent {
         TableMapLogEvent.ColumnInfo[] columnInfo = table.getColumnInfo();
         for (int i = 0; i < columnCnt; i++) {
             TableMapLogEvent.ColumnInfo info = columnInfo[i];
-            if (info.type == LogEvent.MYSQL_TYPE_JSON) {
+            if (info.type == BaseLogEvent.MYSQL_TYPE_JSON) {
                 jsonColumnCount++;
             }
         }

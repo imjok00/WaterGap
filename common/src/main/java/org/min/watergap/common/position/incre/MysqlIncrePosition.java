@@ -31,6 +31,12 @@ public class MysqlIncrePosition implements Position {
         this.uuidSet = MysqlGTIDSet.parse(uuidset);
     }
 
+    public MysqlIncrePosition(String uuidset) {
+        this.isGtidMode = true;
+        this.file = file;
+        this.uuidSet = MysqlGTIDSet.parse(uuidset);
+    }
+
     @Override
     public String getVal() {
         return toString();

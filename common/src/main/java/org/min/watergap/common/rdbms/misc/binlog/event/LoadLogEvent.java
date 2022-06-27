@@ -1,7 +1,7 @@
 package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 /**
  * This log event corresponds to a "LOAD DATA INFILE" SQL query on the following
@@ -153,7 +153,7 @@ import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public class LoadLogEvent extends LogEvent {
+public class LoadLogEvent extends BaseLogEvent {
 
     private String          table;
     private String          db;

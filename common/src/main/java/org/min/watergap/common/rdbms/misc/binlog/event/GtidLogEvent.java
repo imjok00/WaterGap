@@ -1,7 +1,7 @@
 package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -11,7 +11,7 @@ import java.util.UUID;
  * @version 1.0.3
  * @since mysql 5.6 / mariadb10
  */
-public class GtidLogEvent extends LogEvent {
+public class GtidLogEvent extends BaseLogEvent {
 
     // / Length of the commit_flag in event encoding
     public static final int ENCODED_FLAG_LENGTH         = 1;

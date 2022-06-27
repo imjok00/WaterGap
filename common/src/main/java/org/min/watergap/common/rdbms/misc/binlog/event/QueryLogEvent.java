@@ -2,7 +2,7 @@ package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.CharsetConversion;
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -256,7 +256,7 @@ import java.nio.charset.Charset;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public class QueryLogEvent extends LogEvent {
+public class QueryLogEvent extends BaseLogEvent {
 
     /**
      * The maximum number of updated databases that a status of Query-log-event

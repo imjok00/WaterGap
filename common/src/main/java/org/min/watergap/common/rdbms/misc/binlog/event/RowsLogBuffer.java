@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.rdbms.misc.binlog.JsonConversion;
 import org.min.watergap.common.rdbms.misc.binlog.JsonDiffConversion;
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -130,7 +130,7 @@ public final class RowsLogBuffer {
     static int mysqlToJavaType(int type, final int meta, boolean isBinary) {
         int javaType;
 
-        if (type == LogEvent.MYSQL_TYPE_STRING) {
+        if (type == BaseLogEvent.MYSQL_TYPE_STRING) {
             if (meta >= 256) {
                 int byte0 = meta >> 8;
                 if ((byte0 & 0x30) != 0x30) {
@@ -138,9 +138,9 @@ public final class RowsLogBuffer {
                     type = byte0 | 0x30;
                 } else {
                     switch (byte0) {
-                        case LogEvent.MYSQL_TYPE_SET:
-                        case LogEvent.MYSQL_TYPE_ENUM:
-                        case LogEvent.MYSQL_TYPE_STRING:
+                        case BaseLogEvent.MYSQL_TYPE_SET:
+                        case BaseLogEvent.MYSQL_TYPE_ENUM:
+                        case BaseLogEvent.MYSQL_TYPE_STRING:
                             type = byte0;
                     }
                 }
@@ -148,79 +148,79 @@ public final class RowsLogBuffer {
         }
 
         switch (type) {
-            case LogEvent.MYSQL_TYPE_LONG:
+            case BaseLogEvent.MYSQL_TYPE_LONG:
                 javaType = Types.INTEGER;
                 break;
 
-            case LogEvent.MYSQL_TYPE_TINY:
+            case BaseLogEvent.MYSQL_TYPE_TINY:
                 javaType = Types.TINYINT;
                 break;
 
-            case LogEvent.MYSQL_TYPE_SHORT:
+            case BaseLogEvent.MYSQL_TYPE_SHORT:
                 javaType = Types.SMALLINT;
                 break;
 
-            case LogEvent.MYSQL_TYPE_INT24:
+            case BaseLogEvent.MYSQL_TYPE_INT24:
                 javaType = Types.INTEGER;
                 break;
 
-            case LogEvent.MYSQL_TYPE_LONGLONG:
+            case BaseLogEvent.MYSQL_TYPE_LONGLONG:
                 javaType = Types.BIGINT;
                 break;
 
-            case LogEvent.MYSQL_TYPE_DECIMAL:
+            case BaseLogEvent.MYSQL_TYPE_DECIMAL:
                 javaType = Types.DECIMAL;
                 break;
 
-            case LogEvent.MYSQL_TYPE_NEWDECIMAL:
+            case BaseLogEvent.MYSQL_TYPE_NEWDECIMAL:
                 javaType = Types.DECIMAL;
                 break;
 
-            case LogEvent.MYSQL_TYPE_FLOAT:
+            case BaseLogEvent.MYSQL_TYPE_FLOAT:
                 javaType = Types.REAL; // Types.FLOAT;
                 break;
 
-            case LogEvent.MYSQL_TYPE_DOUBLE:
+            case BaseLogEvent.MYSQL_TYPE_DOUBLE:
                 javaType = Types.DOUBLE;
                 break;
 
-            case LogEvent.MYSQL_TYPE_BIT:
+            case BaseLogEvent.MYSQL_TYPE_BIT:
                 javaType = Types.BIT;
                 break;
 
-            case LogEvent.MYSQL_TYPE_TIMESTAMP:
-            case LogEvent.MYSQL_TYPE_DATETIME:
-            case LogEvent.MYSQL_TYPE_TIMESTAMP2:
-            case LogEvent.MYSQL_TYPE_DATETIME2:
+            case BaseLogEvent.MYSQL_TYPE_TIMESTAMP:
+            case BaseLogEvent.MYSQL_TYPE_DATETIME:
+            case BaseLogEvent.MYSQL_TYPE_TIMESTAMP2:
+            case BaseLogEvent.MYSQL_TYPE_DATETIME2:
                 javaType = Types.TIMESTAMP;
                 break;
 
-            case LogEvent.MYSQL_TYPE_TIME:
-            case LogEvent.MYSQL_TYPE_TIME2:
+            case BaseLogEvent.MYSQL_TYPE_TIME:
+            case BaseLogEvent.MYSQL_TYPE_TIME2:
                 javaType = Types.TIME;
                 break;
 
-            case LogEvent.MYSQL_TYPE_NEWDATE:
-            case LogEvent.MYSQL_TYPE_DATE:
+            case BaseLogEvent.MYSQL_TYPE_NEWDATE:
+            case BaseLogEvent.MYSQL_TYPE_DATE:
                 javaType = Types.DATE;
                 break;
 
-            case LogEvent.MYSQL_TYPE_YEAR:
+            case BaseLogEvent.MYSQL_TYPE_YEAR:
                 javaType = Types.VARCHAR;
                 break;
 
-            case LogEvent.MYSQL_TYPE_ENUM:
+            case BaseLogEvent.MYSQL_TYPE_ENUM:
                 javaType = Types.INTEGER;
                 break;
 
-            case LogEvent.MYSQL_TYPE_SET:
+            case BaseLogEvent.MYSQL_TYPE_SET:
                 javaType = Types.BINARY;
                 break;
 
-            case LogEvent.MYSQL_TYPE_TINY_BLOB:
-            case LogEvent.MYSQL_TYPE_MEDIUM_BLOB:
-            case LogEvent.MYSQL_TYPE_LONG_BLOB:
-            case LogEvent.MYSQL_TYPE_BLOB:
+            case BaseLogEvent.MYSQL_TYPE_TINY_BLOB:
+            case BaseLogEvent.MYSQL_TYPE_MEDIUM_BLOB:
+            case BaseLogEvent.MYSQL_TYPE_LONG_BLOB:
+            case BaseLogEvent.MYSQL_TYPE_BLOB:
                 if (meta == 1) {
                     javaType = Types.VARBINARY;
                 } else {
@@ -228,8 +228,8 @@ public final class RowsLogBuffer {
                 }
                 break;
 
-            case LogEvent.MYSQL_TYPE_VARCHAR:
-            case LogEvent.MYSQL_TYPE_VAR_STRING:
+            case BaseLogEvent.MYSQL_TYPE_VARCHAR:
+            case BaseLogEvent.MYSQL_TYPE_VAR_STRING:
                 if (isBinary) {
                     // varbinary在binlog中为var_string类型
                     javaType = Types.VARBINARY;
@@ -238,7 +238,7 @@ public final class RowsLogBuffer {
                 }
                 break;
 
-            case LogEvent.MYSQL_TYPE_STRING:
+            case BaseLogEvent.MYSQL_TYPE_STRING:
                 if (isBinary) {
                     // binary在binlog中为string类型
                     javaType = Types.BINARY;
@@ -247,7 +247,7 @@ public final class RowsLogBuffer {
                 }
                 break;
 
-            case LogEvent.MYSQL_TYPE_GEOMETRY:
+            case BaseLogEvent.MYSQL_TYPE_GEOMETRY:
                 javaType = Types.BINARY;
                 break;
 
@@ -274,7 +274,7 @@ public final class RowsLogBuffer {
     final Serializable fetchValue(String columnName, int columnIndex, int type, final int meta, boolean isBinary) {
         int len = 0;
 
-        if (type == LogEvent.MYSQL_TYPE_STRING) {
+        if (type == BaseLogEvent.MYSQL_TYPE_STRING) {
             if (meta >= 256) {
                 int byte0 = meta >> 8;
                 int byte1 = meta & 0xff;
@@ -284,9 +284,9 @@ public final class RowsLogBuffer {
                     type = byte0 | 0x30;
                 } else {
                     switch (byte0) {
-                        case LogEvent.MYSQL_TYPE_SET:
-                        case LogEvent.MYSQL_TYPE_ENUM:
-                        case LogEvent.MYSQL_TYPE_STRING:
+                        case BaseLogEvent.MYSQL_TYPE_SET:
+                        case BaseLogEvent.MYSQL_TYPE_ENUM:
+                        case BaseLogEvent.MYSQL_TYPE_STRING:
                             type = byte0;
                             len = byte1;
                             break;
@@ -303,7 +303,7 @@ public final class RowsLogBuffer {
         }
 
         switch (type) {
-            case LogEvent.MYSQL_TYPE_LONG: {
+            case BaseLogEvent.MYSQL_TYPE_LONG: {
                 // XXX: How to check signed / unsigned?
                 // value = unsigned ? Long.valueOf(buffer.getUint32()) :
                 // Integer.valueOf(buffer.getInt32());
@@ -312,7 +312,7 @@ public final class RowsLogBuffer {
                 length = 4;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_TINY: {
+            case BaseLogEvent.MYSQL_TYPE_TINY: {
                 // XXX: How to check signed / unsigned?
                 // value = Integer.valueOf(unsigned ? buffer.getUint8() :
                 // buffer.getInt8());
@@ -321,7 +321,7 @@ public final class RowsLogBuffer {
                 length = 1;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_SHORT: {
+            case BaseLogEvent.MYSQL_TYPE_SHORT: {
                 // XXX: How to check signed / unsigned?
                 // value = Integer.valueOf(unsigned ? buffer.getUint16() :
                 // buffer.getInt16());
@@ -330,7 +330,7 @@ public final class RowsLogBuffer {
                 length = 2;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_INT24: {
+            case BaseLogEvent.MYSQL_TYPE_INT24: {
                 // XXX: How to check signed / unsigned?
                 // value = Integer.valueOf(unsigned ? buffer.getUint24() :
                 // buffer.getInt24());
@@ -339,7 +339,7 @@ public final class RowsLogBuffer {
                 length = 3;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_LONGLONG: {
+            case BaseLogEvent.MYSQL_TYPE_LONGLONG: {
                 // XXX: How to check signed / unsigned?
                 // value = unsigned ? buffer.getUlong64()) :
                 // Long.valueOf(buffer.getLong64());
@@ -348,7 +348,7 @@ public final class RowsLogBuffer {
                 length = 8;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_DECIMAL: {
+            case BaseLogEvent.MYSQL_TYPE_DECIMAL: {
                 /*
                  * log_event.h : This enumeration value is only used internally
                  * and cannot exist in a binlog.
@@ -360,7 +360,7 @@ public final class RowsLogBuffer {
                 length = 0;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_NEWDECIMAL: {
+            case BaseLogEvent.MYSQL_TYPE_NEWDECIMAL: {
                 final int precision = meta >> 8;
                 final int decimals = meta & 0xff;
                 value = buffer.getDecimal(precision, decimals);
@@ -368,19 +368,19 @@ public final class RowsLogBuffer {
                 length = precision;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_FLOAT: {
+            case BaseLogEvent.MYSQL_TYPE_FLOAT: {
                 value = Float.valueOf(buffer.getFloat32());
                 javaType = Types.REAL; // Types.FLOAT;
                 length = 4;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_DOUBLE: {
+            case BaseLogEvent.MYSQL_TYPE_DOUBLE: {
                 value = Double.valueOf(buffer.getDouble64());
                 javaType = Types.DOUBLE;
                 length = 8;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_BIT: {
+            case BaseLogEvent.MYSQL_TYPE_BIT: {
                 /* Meta-data: bit_len, bytes_in_rec, 2 bytes */
                 final int nbits = ((meta >> 8) * 8) + (meta & 0xff);
                 len = (nbits + 7) / 8;
@@ -425,7 +425,7 @@ public final class RowsLogBuffer {
                 length = nbits;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_TIMESTAMP: {
+            case BaseLogEvent.MYSQL_TYPE_TIMESTAMP: {
                 // MYSQL DataTypes: TIMESTAMP
                 // range is '1970-01-01 00:00:01' UTC to '2038-01-19 03:14:07'
                 // UTC
@@ -444,7 +444,7 @@ public final class RowsLogBuffer {
                 length = 4;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_TIMESTAMP2: {
+            case BaseLogEvent.MYSQL_TYPE_TIMESTAMP2: {
                 final long tv_sec = buffer.getBeUint32(); // big-endian
                 int tv_usec = 0;
                 switch (meta) {
@@ -489,7 +489,7 @@ public final class RowsLogBuffer {
                 length = 4 + (meta + 1) / 2;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_DATETIME: {
+            case BaseLogEvent.MYSQL_TYPE_DATETIME: {
                 // MYSQL DataTypes: DATETIME
                 // range is '0000-01-01 00:00:00' to '9999-12-31 23:59:59'
                 final long i64 = buffer.getLong64(); /* YYYYMMDDhhmmss */
@@ -530,7 +530,7 @@ public final class RowsLogBuffer {
                 length = 8;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_DATETIME2: {
+            case BaseLogEvent.MYSQL_TYPE_DATETIME2: {
                 /*
                  * DATETIME and DATE low-level memory and disk representation
                  * routines 1 bit sign (used when on disk) 17 bits year*13+month
@@ -613,7 +613,7 @@ public final class RowsLogBuffer {
                 length = 5 + (meta + 1) / 2;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_TIME: {
+            case BaseLogEvent.MYSQL_TYPE_TIME: {
                 // MYSQL DataTypes: TIME
                 // The range is '-838:59:59' to '838:59:59'
                 // final int i32 = buffer.getUint24();
@@ -654,7 +654,7 @@ public final class RowsLogBuffer {
                 length = 3;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_TIME2: {
+            case BaseLogEvent.MYSQL_TYPE_TIME2: {
                 /*
                  * TIME low-level memory and disk representation routines
                  * In-memory format: 1 bit sign (Used for sign, when on disk) 1
@@ -778,7 +778,7 @@ public final class RowsLogBuffer {
                 length = 3 + (meta + 1) / 2;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_NEWDATE: {
+            case BaseLogEvent.MYSQL_TYPE_NEWDATE: {
                 /*
                  * log_event.h : This enumeration value is only used internally
                  * and cannot exist in a binlog.
@@ -790,7 +790,7 @@ public final class RowsLogBuffer {
                 length = 0;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_DATE: {
+            case BaseLogEvent.MYSQL_TYPE_DATE: {
                 // MYSQL DataTypes:
                 // range: 0000-00-00 ~ 9999-12-31
                 final int i32 = buffer.getUint24();
@@ -818,7 +818,7 @@ public final class RowsLogBuffer {
                 length = 3;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_YEAR: {
+            case BaseLogEvent.MYSQL_TYPE_YEAR: {
                 // MYSQL DataTypes: YEAR[(2|4)]
                 // In four-digit format, values display as 1901 to 2155, and
                 // 0000.
@@ -850,7 +850,7 @@ public final class RowsLogBuffer {
                 length = 1;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_ENUM: {
+            case BaseLogEvent.MYSQL_TYPE_ENUM: {
                 final int int32;
                 /*
                  * log_event.h : This enumeration value is only used internally
@@ -873,7 +873,7 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_SET: {
+            case BaseLogEvent.MYSQL_TYPE_SET: {
                 final int nbits = (meta & 0xFF) * 8;
                 len = (nbits + 7) / 8;
                 if (nbits > 1) {
@@ -918,7 +918,7 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_TINY_BLOB: {
+            case BaseLogEvent.MYSQL_TYPE_TINY_BLOB: {
                 /*
                  * log_event.h : This enumeration value is only used internally
                  * and cannot exist in a binlog.
@@ -926,7 +926,7 @@ public final class RowsLogBuffer {
                 logger.warn("MYSQL_TYPE_TINY_BLOB : This enumeration value is "
                             + "only used internally and cannot exist in a binlog!");
             }
-            case LogEvent.MYSQL_TYPE_MEDIUM_BLOB: {
+            case BaseLogEvent.MYSQL_TYPE_MEDIUM_BLOB: {
                 /*
                  * log_event.h : This enumeration value is only used internally
                  * and cannot exist in a binlog.
@@ -934,7 +934,7 @@ public final class RowsLogBuffer {
                 logger.warn("MYSQL_TYPE_MEDIUM_BLOB : This enumeration value is "
                             + "only used internally and cannot exist in a binlog!");
             }
-            case LogEvent.MYSQL_TYPE_LONG_BLOB: {
+            case BaseLogEvent.MYSQL_TYPE_LONG_BLOB: {
                 /*
                  * log_event.h : This enumeration value is only used internally
                  * and cannot exist in a binlog.
@@ -942,7 +942,7 @@ public final class RowsLogBuffer {
                 logger.warn("MYSQL_TYPE_LONG_BLOB : This enumeration value is "
                             + "only used internally and cannot exist in a binlog!");
             }
-            case LogEvent.MYSQL_TYPE_BLOB: {
+            case BaseLogEvent.MYSQL_TYPE_BLOB: {
                 /*
                  * BLOB or TEXT datatype
                  */
@@ -992,8 +992,8 @@ public final class RowsLogBuffer {
                 }
                 break;
             }
-            case LogEvent.MYSQL_TYPE_VARCHAR:
-            case LogEvent.MYSQL_TYPE_VAR_STRING: {
+            case BaseLogEvent.MYSQL_TYPE_VARCHAR:
+            case BaseLogEvent.MYSQL_TYPE_VAR_STRING: {
                 /*
                  * Except for the data length calculation, MYSQL_TYPE_VARCHAR,
                  * MYSQL_TYPE_VAR_STRING and MYSQL_TYPE_STRING are handled the
@@ -1022,7 +1022,7 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_STRING: {
+            case BaseLogEvent.MYSQL_TYPE_STRING: {
                 if (len < 256) {
                     len = buffer.getUint8();
                 } else {
@@ -1043,7 +1043,7 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_JSON: {
+            case BaseLogEvent.MYSQL_TYPE_JSON: {
                 switch (meta) {
                     case 1: {
                         len = buffer.getUint8();
@@ -1097,7 +1097,7 @@ public final class RowsLogBuffer {
                 length = len;
                 break;
             }
-            case LogEvent.MYSQL_TYPE_GEOMETRY: {
+            case BaseLogEvent.MYSQL_TYPE_GEOMETRY: {
                 /*
                  * MYSQL_TYPE_GEOMETRY: copy from BLOB or TEXT
                  */

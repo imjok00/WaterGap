@@ -11,7 +11,7 @@ import org.min.watergap.common.position.incre.MysqlGTIDSet;
 import org.min.watergap.common.position.incre.MysqlIncrePosition;
 import org.min.watergap.common.utils.StringUtils;
 import org.min.watergap.intake.incre.IncreLogPumper;
-import org.min.watergap.intake.incre.rdbms.mysql.parser.driver.MysqlConnection;
+import org.min.watergap.intake.incre.rdbms.mysql.connect.MysqlConnection;
 import org.min.watergap.piping.thread.SingleThreadWorkGroup;
 import org.min.watergap.piping.translator.impl.IncreLogPositionPipingData;
 

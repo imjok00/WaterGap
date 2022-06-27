@@ -1,6 +1,8 @@
 package org.min.watergap.common.utils;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,4 +24,7 @@ public class CollectionsUtils {
         return collection == null || collection.isEmpty();
     }
 
+    public static List emptyList() {
+        return new ArrayList();
+    }
 }

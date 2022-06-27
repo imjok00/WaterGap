@@ -1,6 +1,7 @@
 package org.min.watergap.piping.translator;
 
 import org.min.watergap.common.rdbms.struct.StructType;
+import org.min.watergap.piping.translator.impl.header.IncreLogHeader;
 import org.min.watergap.piping.translator.type.PipingType;
 
 /**
@@ -11,6 +12,8 @@ import org.min.watergap.piping.translator.type.PipingType;
 public interface PipingEvent extends PipingData {
 
     PipingType getPipingType();
+
+    IncreLogHeader getHeader();
 
     default StructType getType() {
         return StructType.INCRE_DATA;

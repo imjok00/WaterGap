@@ -1,7 +1,7 @@
 package org.min.watergap.common.rdbms.misc.binlog.event;
 
 import org.min.watergap.common.rdbms.misc.binlog.LogBuffer;
-import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 
 /**
  * Start_log_event_v3 is the Start_log_event of binlog format 3 (MySQL 3.23 and
@@ -15,7 +15,7 @@ import org.min.watergap.common.rdbms.misc.binlog.LogEvent;
  * @author <a href="mailto:changyuan.lh@taobao.com">Changyuan.lh</a>
  * @version 1.0
  */
-public class StartLogEventV3 extends LogEvent {
+public class StartLogEventV3 extends BaseLogEvent {
 
     /**
      * We could have used SERVER_VERSION_LENGTH, but this introduces an obscure

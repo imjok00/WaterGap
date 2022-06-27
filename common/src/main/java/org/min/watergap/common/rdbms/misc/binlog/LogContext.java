@@ -23,7 +23,7 @@ public final class LogContext {
 
     private GTIDSet gtidSet;
 
-    private LogEvent                          gtidLogEvent; // save current gtid log event
+    private BaseLogEvent gtidLogEvent; // save current gtid log event
 
     public LogContext(){
         this.formatDescription = FormatDescriptionLogEvent.FORMAT_DESCRIPTION_EVENT_5_x;
@@ -74,11 +74,11 @@ public final class LogContext {
         this.gtidSet = gtidSet;
     }
 
-    public LogEvent getGtidLogEvent() {
+    public BaseLogEvent getGtidLogEvent() {
         return gtidLogEvent;
     }
 
-    public void setGtidLogEvent(LogEvent gtidLogEvent) {
+    public void setGtidLogEvent(BaseLogEvent gtidLogEvent) {
         this.gtidLogEvent = gtidLogEvent;
     }
 }

@@ -11,9 +11,9 @@ public class IncreLogHeader {
 
     protected EventType eventType;
 
-    protected boolean isDDL;
+    protected String schemaName;
 
-    protected String sql;
+    protected String tableName;
 
     public IncreLogHeader(EventType eventType) {
         this.eventType = eventType;
@@ -27,19 +27,19 @@ public class IncreLogHeader {
         this.eventType = eventType;
     }
 
-    public boolean isDDL() {
-        return isDDL;
+    public String getTableName() {
+        return tableName;
     }
 
-    public void setDDL(boolean DDL) {
-        isDDL = DDL;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
-    public String getSql() {
-        return sql;
+    public String getSchemaName() {
+        return schemaName;
     }
 
-    public void setSql(String sql) {
-        this.sql = sql;
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
     }
 }

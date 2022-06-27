@@ -57,4 +57,21 @@ public class StringUtils {
             return str == null && suffix == null;
         }
     }
+
+    public static boolean containsIgnoreCase(String str, String searchStr) {
+        if (str != null && searchStr != null) {
+            int len = searchStr.length();
+            int max = str.length() - len;
+
+            for(int i = 0; i <= max; ++i) {
+                if (str.regionMatches(true, i, searchStr, 0, len)) {
+                    return true;
+                }
+            }
+
+            return false;
+        } else {
+            return false;
+        }
+    }
 }

@@ -1,6 +1,6 @@
 package org.min.watergap.piping.convertor;
 
-import org.min.watergap.common.rdbms.inclog.OrgIncEvent;
+import org.min.watergap.common.rdbms.misc.binlog.BaseLogEvent;
 import org.min.watergap.piping.translator.PipingEvent;
 
 /**
@@ -10,6 +10,6 @@ import org.min.watergap.piping.translator.PipingEvent;
  */
 public interface IncreLogConvert {
 
-    PipingEvent convert(OrgIncEvent event);
+    PipingEvent convert(BaseLogEvent event);
 
 }
