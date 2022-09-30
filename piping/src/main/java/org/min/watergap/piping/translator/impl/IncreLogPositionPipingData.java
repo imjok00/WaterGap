@@ -28,4 +28,8 @@ public class IncreLogPositionPipingData extends BasePipingData {
     public StructType getType() {
         return StructType.INCRE_POSITION;
     }
+
+    public static IncreLogPositionPipingData create(Position position){
+        return new IncreLogPositionPipingData(position);
+    }
 }

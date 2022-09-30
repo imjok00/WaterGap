@@ -26,7 +26,7 @@ public class FullTableDataPipingData extends TableStructBasePipingData {
         super(tableStructBasePipingData.getSchemaName(), tableStructBasePipingData.getTableName());
         setSourceCreateSql(tableStructBasePipingData.getSourceCreateSql());
         setColumns(tableStructBasePipingData.getColumns());
-        setIdentical(tableStructBasePipingData.isIdentical());
+
         setIndexInfo(tableStructBasePipingData.getIndexInfo());
         position = new RdbmsFullPosition(RdbmsFullPosition.START_POSITION_FLAG);
         

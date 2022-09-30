@@ -12,7 +12,6 @@ import org.min.watergap.common.position.incre.MysqlIncrePosition;
 import org.min.watergap.common.utils.StringUtils;
 import org.min.watergap.intake.incre.IncreLogPumper;
 import org.min.watergap.intake.incre.rdbms.mysql.connect.MysqlConnection;
-import org.min.watergap.piping.thread.SingleThreadWorkGroup;
 import org.min.watergap.piping.translator.impl.IncreLogPositionPipingData;
 
 import java.io.IOException;
@@ -27,8 +26,6 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
     private static final Logger LOG = LogManager.getLogger(MysqlIncreLogPumper.class);
 
     private IncrePositionService increPositionService;
-
-    private SingleThreadWorkGroup workGroup;
 
     private MysqlConnection mysqlConnection;
 
@@ -46,8 +43,6 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
         } catch (IOException e) {
             LOG.error("mysql connect disconnect fail", e);
         }
-
-        workGroup.destroy();
     }
 
     @Override
@@ -59,7 +54,7 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
         new Thread(() -> {
             Position position = getLastIncrePosition();
             try {
-                sendPosition((IncreLogPositionPipingData) position);
+                startProducer(IncreLogPositionPipingData.create(position));
             } catch (Exception e) {
                 LOG.error("start fetch incre log error ", e);
                 destroy();
@@ -74,9 +69,11 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
        return increPosition;
     }
 
-    private void sendPosition(IncreLogPositionPipingData positionBasePipingData) throws Exception {
+    private void startProducer(IncreLogPositionPipingData positionBasePipingData) throws Exception {
         MysqlIncrePosition increPosition = (MysqlIncrePosition) positionBasePipingData.getPosition();
-
+        if (!mysqlConnection.isConnected()) {
+            mysqlConnection.connect();
+        }
         if (increPosition.isGtidMode()) {
             mysqlConnection.dump((MysqlGTIDSet) increPosition.getUuidSet(), increMPiping);
         } else {
@@ -130,6 +127,8 @@ public class MysqlIncreLogPumper extends IncreLogPumper {
                 LOG.error("prepare error, sql : " + sql, e);
             }
         }
+
+
 
         return false;
     }

@@ -19,6 +19,10 @@ public abstract class BaseConfig {
 
     private Long sqlSelectLimit;
 
+    private Integer ringbufferSize;
+
+    private Integer parserThreadCount;
+
     public BaseConfig() {
 
     }
@@ -45,5 +49,21 @@ public abstract class BaseConfig {
 
     public void setSqlSelectLimit(JsonElement sqlSelectLimit) {
         this.sqlSelectLimit = sqlSelectLimit == null ? SystemConstant.DEFAULT_SQL_SELECT_LIMIT : sqlSelectLimit.getAsLong();
+    }
+
+    public Integer getRingbufferSize() {
+        return ringbufferSize;
+    }
+
+    public void setRingbufferSize(JsonElement jsonElement) {
+        this.ringbufferSize = jsonElement == null ? SystemConstant.DEFAULT_RINGBUFFER_SIZE : jsonElement.getAsInt();
+    }
+
+    public Integer getParserThreadCount() {
+        return parserThreadCount;
+    }
+
+    public void setParserThreadCount(JsonElement jsonElement) {
+        this.parserThreadCount = jsonElement == null ? SystemConstant.DEFAULT_PARSERTHREAD_COUNT : jsonElement.getAsInt();
     }
 }

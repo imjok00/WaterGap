@@ -15,6 +15,9 @@ public class WaterGapPiping implements BasePiping {
 
     @Override
     public void put(PipingData struct) throws InterruptedException {
+        if (struct == null) {
+            return;
+        }
         fSink.put(struct);
     }
 

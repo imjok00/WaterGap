@@ -25,6 +25,8 @@ public class WaterGapGlobalConfig extends BaseConfig{
     public static final String CONFIG_ROOT_SCOPE_PARTIAL_TABLE = "partialTable";
     /** 配置项 - select limit */
     public static final String CONFIG_ROOT_SQL_LIMIT = "sqlLimit";
+    /** 配置项 - ringbufferSize */
+    public static final String CONFIG_ROOT_RINGBUFFERSIZE = "ringbufferSize";
 
     private DataSourceConfig sourceConfig;
 
@@ -64,6 +66,7 @@ public class WaterGapGlobalConfig extends BaseConfig{
             setScope(propJsonObject.get(CONFIG_ROOT_SCOPE));
             setExecutorWorkNum(propJsonObject.get(CONFIG_ROOT_THREADNUM));
             setSqlSelectLimit(propJsonObject.get(CONFIG_ROOT_SQL_LIMIT));
+            setRingbufferSize(propJsonObject.get(CONFIG_ROOT_RINGBUFFERSIZE));
         } catch (FileNotFoundException fileNotFoundException) {
             throw new WaterGapException("file not found : " + jsonPath, fileNotFoundException);
         }

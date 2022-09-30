@@ -42,32 +42,21 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
     private RingBuffer<MessageEvent>          disruptorMsgBuffer;
     private ExecutorService                   parserExecutor;
     private ExecutorService                   stageExecutor;
-    private String                            destination;
     private AtomicLong                        eventsPublishBlockingTime;
     private GTIDSet gtidSet;
     private WorkerPool<MessageEvent>          workerPool;
     private BatchEventProcessor<MessageEvent> simpleParserStage;
     private BatchEventProcessor<MessageEvent> sinkStoreStage;
     private LogContext logContext;
-    protected boolean                         filterDmlInsert = false;
-    protected boolean                         filterDmlUpdate = false;
-    protected boolean                         filterDmlDelete = false;
 
-    public MultiThreadWorkGroup(int ringBufferSize, int parserThreadCount,
-                                WaterGapTransactionPiping transactionBuffer, String destination,
-                                boolean filterDmlInsert, boolean filterDmlUpdate, boolean filterDmlDelete){
-        this.ringBufferSize = ringBufferSize;
-        this.parserThreadCount = parserThreadCount;
+    public MultiThreadWorkGroup(WaterGapTransactionPiping transactionBuffer){
         this.transactionBuffer = transactionBuffer;
-        this.destination = destination;
-        this.filterDmlInsert = filterDmlInsert;
-        this.filterDmlUpdate = filterDmlUpdate;
-        this.filterDmlDelete = filterDmlDelete;
     }
 
     @Override
     public void init(WaterGapContext waterGapContext) {
-
+        this.ringBufferSize = waterGapContext.getGlobalConfig().getRingbufferSize();
+        this.parserThreadCount = waterGapContext.getGlobalConfig().getParserThreadCount();
     }
 
     @Override
@@ -82,11 +71,9 @@ public class MultiThreadWorkGroup extends AbstractWaterGapLifeCycle {
             ringBufferSize,
             new YieldingWaitStrategy());
         int tc = parserThreadCount > 0 ? parserThreadCount : 1;
-        this.parserExecutor = Executors.newFixedThreadPool(tc, new CustomThreadFactory("MultiStageCoprocessor-Parser-"
-                                                                                      + destination));
+        this.parserExecutor = Executors.newFixedThreadPool(tc, new CustomThreadFactory("MultiStageCoprocessor-Parser"));
 
-        this.stageExecutor = Executors.newFixedThreadPool(2, new CustomThreadFactory("MultiStageCoprocessor-other-"
-                                                                                    + destination));
+        this.stageExecutor = Executors.newFixedThreadPool(2, new CustomThreadFactory("MultiStageCoprocessor-other"));
         SequenceBarrier sequenceBarrier = disruptorMsgBuffer.newBarrier();
         ExceptionHandler exceptionHandler = new SimpleFatalExceptionHandler();
         // stage 2

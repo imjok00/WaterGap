@@ -194,13 +194,13 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
         return StructType.TABLE;
     }
 
-    public static TableStructBasePipingData getInstance(FullTableStructORM orm, boolean identical) {
+    public static TableStructBasePipingData getInstance(FullTableStructORM orm) {
         TableStructBasePipingData pipingData = new TableStructBasePipingData(orm.getSchemaName(), orm.getTableName());
         pipingData.setColumns(new Gson().fromJson(orm.getColumns(), new TypeToken<List<Column>>(){}.getType()));
         pipingData.setIndexInfo(new Gson().fromJson(orm.getIndexInfo(), IndexInfo.class));
         pipingData.setAllOptions(new Gson().fromJson(orm.getOptions(), new TypeToken<Map<String, String>>(){}.getType()));
         pipingData.setSourceCreateSql(orm.getSourceCreateSql());
-        pipingData.setIdentical(identical);
+
         pipingData.findFullKey();
         return pipingData;
     }
@@ -418,6 +418,13 @@ public class TableStructBasePipingData extends RdbmsStructBasePipingData {
 
         public Map<String, List<Column>> getUniqueKeys() {
             return uniqueKeys;
+        }
+
+        public List<Column> getRandomUK() {
+            for(String key : uniqueKeys.keySet()) {
+                return uniqueKeys.get(key);
+            }
+            return null;
         }
 
         public void setUniqueKeys(Map<String, List<Column>> uniqueKeys) {

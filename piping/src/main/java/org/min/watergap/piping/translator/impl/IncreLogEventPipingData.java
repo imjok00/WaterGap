@@ -49,6 +49,13 @@ public class IncreLogEventPipingData implements PipingEvent {
         header.setTableName(tableName);
     }
 
+    public IncreLogEventPipingData(PipingType entryType, EventType eventType, String schemaName, String tableName) {
+        this.pipingType = entryType;
+        this.header = new IncreLogHeader(eventType);
+        header.setSchemaName(schemaName);
+        header.setTableName(tableName);
+    }
+
     public IncreLogEventPipingData(IncEvent event, PipingType entryType, EventType eventType, String schemaName) {
         this.events.add(event);
         this.pipingType = entryType;
@@ -87,7 +94,7 @@ public class IncreLogEventPipingData implements PipingEvent {
     }
 
     public static PipingEvent createRowData(String schema, String tableName, EventType eventType) {
-        return new IncreLogEventPipingData(new RowUpdateDataIncEvent(), PipingType.ROWDATA, eventType, schema, tableName);
+        return new IncreLogEventPipingData(PipingType.ROWDATA, eventType, schema, tableName);
     }
 
     public static PipingEvent createDDLEvent(String schema, List<DdlResult> ddlResults) {
@@ -119,6 +126,10 @@ public class IncreLogEventPipingData implements PipingEvent {
     }
 
     public static PipingEvent createHeartbeatEvent() {
-        return new IncreLogEventPipingData(new HeartbeatIncEvent(), PipingType.ROWDATA, EventType.MHEARTBEAT);
+        return new IncreLogEventPipingData(new HeartbeatIncEvent(), PipingType.HEARTBEAT, EventType.MHEARTBEAT);
+    }
+
+    public List<IncEvent> getEvents() {
+        return events;
     }
 }

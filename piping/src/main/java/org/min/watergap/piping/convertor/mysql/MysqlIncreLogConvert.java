@@ -2,6 +2,7 @@ package org.min.watergap.piping.convertor.mysql;
 
 import org.min.watergap.common.config.DatabaseType;
 import org.min.watergap.common.exception.WaterGapException;
+import org.min.watergap.common.local.storage.orm.FullTableStructORM;
 import org.min.watergap.common.rdbms.inclog.BaseIncEvent;
 import org.min.watergap.common.rdbms.inclog.RowUpdateDataIncEvent;
 import org.min.watergap.common.rdbms.misc.LogEvent;
@@ -14,6 +15,7 @@ import org.min.watergap.common.rdbms.misc.binlog.type.EventType;
 import org.min.watergap.common.sql.parse.DdlResult;
 import org.min.watergap.common.sql.parse.DruidDdlParser;
 import org.min.watergap.common.utils.StringUtils;
+import org.min.watergap.common.utils.ThreadLocalUtils;
 import org.min.watergap.piping.convertor.IncreLogConvert;
 import org.min.watergap.piping.translator.PipingEvent;
 import org.min.watergap.piping.translator.impl.IncreLogEventPipingData;
@@ -64,6 +66,8 @@ public class MysqlIncreLogConvert implements IncreLogConvert {
 
     public MysqlIncreLogConvert(Charset charset) {
         this.charset = charset;
+        tableMetaCache = new HashMap<>();
+        ThreadLocalUtils.init();
     }
 
     public PipingEvent convert(BaseLogEvent event) {
@@ -78,8 +82,7 @@ public class MysqlIncreLogConvert implements IncreLogConvert {
             case BaseLogEvent.XID_EVENT:
                 return parseXidEvent((XidLogEvent) event);
             case BaseLogEvent.TABLE_MAP_EVENT:
-                parseTableMapEvent((TableMapLogEvent) event);
-                break;
+                return parseTableMapEvent((TableMapLogEvent) event);
             case BaseLogEvent.WRITE_ROWS_EVENT_V1:
             case BaseLogEvent.WRITE_ROWS_EVENT:
                 return parseRowsEvent((WriteRowsLogEvent) event);
@@ -165,6 +168,14 @@ public class MysqlIncreLogConvert implements IncreLogConvert {
 
             String charsetTbName = new String(event.getTableName().getBytes(ISO_8859_1), charset.name());
             event.setTblname(charsetTbName);
+
+            String fullname = event.getDbName() + "." + event.getTableName();
+            TableStructBasePipingData tableStruct = tableMetaCache.get(fullname);
+            if (tableStruct == null) {
+                FullTableStructORM fullTableStructORM = ThreadLocalUtils.getFullTableStructService().queryOne(event.getDbName(), event.getTableName());
+                tableStruct = TableStructBasePipingData.getInstance(fullTableStructORM);
+                tableMetaCache.put(fullname, tableStruct);
+            }
             return null;
         } catch (UnsupportedEncodingException e) {
             throw new WaterGapException("UnsupportedEncoding", e);
@@ -269,7 +280,7 @@ public class MysqlIncreLogConvert implements IncreLogConvert {
                 continue;
             }
 
-            TableStructBasePipingData.Column fieldMeta = tableMeta.getColumnByName(info.name);
+            TableStructBasePipingData.Column fieldMeta = tableMeta.getColumns().get(i);
             BaseIncEvent.ColumnInfo columnBuilder = new BaseIncEvent.ColumnInfo();
             if (fieldMeta != null) {
                 columnBuilder.setName(fieldMeta.getColumnName());
@@ -483,4 +494,5 @@ public class MysqlIncreLogConvert implements IncreLogConvert {
         }
         return null;
     }
+
 }

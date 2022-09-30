@@ -2,6 +2,7 @@ package org.min.watergap.common.local.storage.orm.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.OrmJdbcHelper;
 import org.min.watergap.common.local.storage.orm.MigrateStageORM;
 
@@ -28,12 +29,14 @@ public class MigrateStageService extends BaseLocalService<MigrateStageORM> {
         return null;
     }
 
-    public void create() {
+    public MigrateStageORM create() {
         try {
             MigrateStageORM orm = new MigrateStageORM(MigrateStageORM.StageEnum.START.toString());
             this.dao.create(orm);
+            return orm;
         } catch (SQLException e) {
             LOG.error("create migrate stage error", e);
+            throw new WaterGapException("create migrate stage error", e);
         }
     }
 

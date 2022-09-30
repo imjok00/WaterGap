@@ -12,13 +12,15 @@ import org.min.watergap.piping.translator.WaterGapPiping;
 public abstract class IncreLogPumper extends DBPumper implements Pumper {
 
     protected WaterGapPiping increMPiping;
+    protected WaterGapPiping increAckPiping;
 
     public abstract boolean check();
 
     public abstract boolean prepare();
 
-    public void injectIncrePiping(WaterGapPiping piping) {
+    public void injectPiping(WaterGapPiping piping, WaterGapPiping ackPiping) {
         increMPiping = piping;
+        increAckPiping = ackPiping;
     }
 
 }

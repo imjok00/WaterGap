@@ -13,6 +13,7 @@ import org.min.watergap.intake.incre.rdbms.mysql.MysqlIncreLogPumper;
 import org.min.watergap.outfall.Drainer;
 import org.min.watergap.outfall.OutFallDrainer;
 import org.min.watergap.outfall.full.RdbmsOutFallDrainer;
+import org.min.watergap.outfall.incre.MysqlIncreOutFallDrainer;
 import org.min.watergap.piping.translator.WaterGapPiping;
 
 /**
@@ -30,9 +31,15 @@ public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Ru
 
     private WaterGapPiping pumpPiping;
 
+    private WaterGapPiping increPiping;
+
     private Drainer fullDrainer;
 
+    private Drainer incDrainer;
+
     private WaterGapPiping ackPiping;
+
+    private WaterGapPiping increActPiping;
 
     private WaterGapContext waterGapContext;
 
@@ -50,16 +57,22 @@ public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Ru
             case MySQL:
                 LOG.info("# Init MySQL drainer...");
                 fullDrainer = new RdbmsOutFallDrainer();
+                incDrainer = new MysqlIncreOutFallDrainer();
                 break;
         }
         pumpPiping = new WaterGapPiping();
         ackPiping = new WaterGapPiping();
+        increPiping = new WaterGapPiping();
+        increActPiping = new WaterGapPiping();
 
         ((RdbmsDataPumper)fullPumper).injectPiping(pumpPiping, ackPiping);
         ((OutFallDrainer)fullDrainer).injectPiping(pumpPiping, ackPiping);
         ((WaterGapLifeCycle)fullPumper).init(waterGapContext);
         ((WaterGapLifeCycle)fullDrainer).init(waterGapContext);
         ((WaterGapLifeCycle)increLogPumper).init(waterGapContext);
+        ((WaterGapLifeCycle)incDrainer).init(waterGapContext);
+        increLogPumper.injectPiping(increPiping, increActPiping);
+        ((OutFallDrainer)incDrainer).injectPiping(increPiping, increActPiping);
     }
 
     @Override
@@ -73,6 +86,8 @@ public class FullAndIncreStarter extends AbstractWaterGapLifeCycle implements Ru
             fullPumper.pump();
             LOG.info("### Full Drainer Starter ###");
             fullDrainer.apply();
+            LOG.info("### Incre Drainer Starter ###");
+            incDrainer.apply();
         } else {
             LOG.error("Incre pumper check fail");
         }

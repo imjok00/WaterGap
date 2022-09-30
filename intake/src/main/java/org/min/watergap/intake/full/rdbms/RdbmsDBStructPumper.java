@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.exception.WaterGapException;
 import org.min.watergap.common.local.storage.orm.FullTableStructORM;
+import org.min.watergap.common.local.storage.orm.MigrateStageORM;
 import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
 import org.min.watergap.common.utils.CollectionsUtils;
 import org.min.watergap.common.utils.StringUtils;
@@ -31,11 +32,20 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
 
     @Override
     public void pump() throws WaterGapException {
-        startStage();
-        // step 1: get all table schema into local db
-        extractDBSchema();
-        // step 2: get ack to extract table
-        startConsumers();
+        String stage = startStage();
+        if(checkFullOver(stage)) {
+            LOG.info("##full stage has been complete");
+            try {
+                tryClose();
+            } catch (Exception e) {
+                throw new WaterGapException("try close error", e);
+            }
+        } else {
+            // step 1: get all table schema into local db
+            extractDBSchema();
+            // step 2: get ack to extract table
+            startConsumers();
+        }
     }
 
     private void startConsumers() {
@@ -112,7 +122,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
             while (resultSet.next()) {
                 FullTableStructORM fullTableStatusORM = ThreadLocalUtils.getFullTableStructService().queryOne(catalog, resultSet.getString(1));
                 if (null != fullTableStatusORM) {
-                    pumpPiping.put(TableStructBasePipingData.getInstance(fullTableStatusORM, isIdentical));
+                    pumpPiping.put(TableStructBasePipingData.getInstance(fullTableStatusORM));
                 } else {
                     TableStructBasePipingData pipingData = new TableStructBasePipingData(catalog, resultSet.getString(1));
                     assembleTableStruct(pipingData);
@@ -136,7 +146,7 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
                 pipingData.setSourceCreateSql(resultSet.getString(2));
             }
         });
-        pipingData.setIdentical(isIdentical);
+        //pipingData.setIdentical(isIdentical);
         extractTableColumns(pipingData);
         //extractTableUniqueKeys(pipingData);
         extractTableNormalKeys(pipingData);
@@ -273,6 +283,10 @@ public abstract  class RdbmsDBStructPumper extends RdbmsDataPumper {
             }
         });
         return schemaStructs;
+    }
+
+    private boolean checkFullOver(String stage) {
+        return MigrateStageORM.StageEnum.FULL_OVER.toString().equals(stage);
     }
 
 }

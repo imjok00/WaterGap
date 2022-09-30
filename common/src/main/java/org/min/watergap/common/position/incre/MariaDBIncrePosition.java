@@ -8,33 +8,33 @@ import org.min.watergap.common.position.Position;
  *
  * @Create by metaX.h on 2022/4/30 10:33
  */
-public class MysqlIncrePosition implements Position {
+public class MariaDBIncrePosition implements Position {
 
     private boolean isGtidMode;
 
     private String file;
     private Long position;
 
-    private MysqlGTIDSet uuidSet;
+    private MariaGTIDSet uuidSet;
 
-    public MysqlIncrePosition() {}
+    public MariaDBIncrePosition() {}
 
-    public MysqlIncrePosition(String file, Long position) {
+    public MariaDBIncrePosition(String file, Long position) {
         this.isGtidMode = false;
         this.file = file;
         this.position = position;
     }
 
-    public MysqlIncrePosition(String file, String uuidset) {
+    public MariaDBIncrePosition(String file, String uuidset) {
         this.isGtidMode = true;
         this.file = file;
-        this.uuidSet = MysqlGTIDSet.parse(uuidset);
+        this.uuidSet = MariaGTIDSet.parse(uuidset);
     }
 
-    public MysqlIncrePosition(String uuidset) {
+    public MariaDBIncrePosition(String uuidset) {
         this.isGtidMode = true;
         this.file = file;
-        this.uuidSet = MysqlGTIDSet.parse(uuidset);
+        this.uuidSet = MariaGTIDSet.parse(uuidset);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class MysqlIncrePosition implements Position {
          * 2: file : gtid : long
          */
         Gson gson = new Gson();
-        MysqlIncrePosition mysqlPosition = gson.fromJson(position, MysqlIncrePosition.class);
+        MariaDBIncrePosition mysqlPosition = gson.fromJson(position, MariaDBIncrePosition.class);
         this.isGtidMode = mysqlPosition.isGtidMode;
         if (isGtidMode) {
             this.file = mysqlPosition.file;

@@ -13,4 +13,9 @@ public class SystemConstant {
     // 默认的limit 大小
     public static final long DEFAULT_SQL_SELECT_LIMIT = 10000;
 
+    // 默认的ringbufferSize 大小
+    public static final int DEFAULT_RINGBUFFER_SIZE = 1024;
+
+    // 默认的parserThreadCount 大小
+    public static final int DEFAULT_PARSERTHREAD_COUNT = 16;
 }

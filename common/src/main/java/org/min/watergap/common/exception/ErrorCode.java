@@ -7,8 +7,8 @@ package org.min.watergap.common.exception;
  */
 public class ErrorCode {
 
+    public static String UPDATE_FAIL = "err_1";
 
-
-
+    public static String INSERT_FAIL = "err_2";
 
 }

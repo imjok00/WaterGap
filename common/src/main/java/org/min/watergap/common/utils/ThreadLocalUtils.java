@@ -20,6 +20,21 @@ public class ThreadLocalUtils {
 
     private static final ThreadLocal<Map<String, Object>> THREAD_LOCAL = ThreadLocal.withInitial(HashMap::new);
 
+    public static void init() {
+        if (null == get(FullTableStructService.class.getName())) {
+            ThreadLocalUtils.set(FullTableStructService.class.getName(), new FullTableStructService());
+        }
+        if (null == get(FullTableDataPositionService.class.getName())) {
+            ThreadLocalUtils.set(FullTableDataPositionService.class.getName(), new FullTableDataPositionService());
+        }
+        if (null == get(SchemaStatusService.class.getName())) {
+            ThreadLocalUtils.set(SchemaStatusService.class.getName(), new SchemaStatusService());
+        }
+        if (null == get(MigrateStageService.class.getName())) {
+            ThreadLocalUtils.set(MigrateStageService.class.getName(), new MigrateStageService());
+        }
+    }
+
     public static Object get(String key) {
         return THREAD_LOCAL.get().get(key);
     }

@@ -2,10 +2,6 @@ package org.min.watergap.intake.full.rdbms;
 
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.local.storage.orm.MigrateStageORM;
-import org.min.watergap.common.local.storage.orm.service.FullTableDataPositionService;
-import org.min.watergap.common.local.storage.orm.service.FullTableStructService;
-import org.min.watergap.common.local.storage.orm.service.MigrateStageService;
-import org.min.watergap.common.local.storage.orm.service.SchemaStatusService;
 import org.min.watergap.common.utils.StringUtils;
 import org.min.watergap.common.utils.ThreadLocalUtils;
 import org.min.watergap.intake.full.DBPumper;
@@ -38,13 +34,6 @@ public abstract class RdbmsDataPumper extends DBPumper {
         workGroups = new SingleThreadWorkGroup[waterGapContext.getGlobalConfig().getExecutorWorkNum()];
     }
 
-    private void initLocalService() {
-        ThreadLocalUtils.set(FullTableStructService.class.getName(), new FullTableStructService());
-        ThreadLocalUtils.set(FullTableDataPositionService.class.getName(), new FullTableDataPositionService());
-        ThreadLocalUtils.set(SchemaStatusService.class.getName(), new SchemaStatusService());
-        ThreadLocalUtils.set(MigrateStageService.class.getName(), new MigrateStageService());
-    }
-
     public void injectPiping(WaterGapPiping pumpPiping, WaterGapPiping ackPiping) {
         this.pumpPiping = pumpPiping;
         this.ackPiping = ackPiping;
@@ -53,19 +42,22 @@ public abstract class RdbmsDataPumper extends DBPumper {
     @Override
     public void destroy() {
         super.destroy();
-        if (workGroups != null) {
+        if (workGroups != null && workGroups.length > 0) {
             for (SingleThreadWorkGroup singleThreadWorkGroup : workGroups) {
-                singleThreadWorkGroup.destroy();
+                if (singleThreadWorkGroup != null) {
+                    singleThreadWorkGroup.destroy();
+                }
             }
         }
     }
 
-    protected void startStage() {
+    protected String startStage() {
         super.start();
         MigrateStageORM migrateStageORM = ThreadLocalUtils.getMigrateStageService().queryOne();
         if (migrateStageORM == null) {
-            ThreadLocalUtils.getMigrateStageService().create();
+            migrateStageORM = ThreadLocalUtils.getMigrateStageService().create();
         }
+        return migrateStageORM.getStage();
     }
 
     protected void startNextDataPumper(FullTableDataPipingData tableData) throws InterruptedException, SQLException {

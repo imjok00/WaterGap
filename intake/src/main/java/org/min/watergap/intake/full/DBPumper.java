@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.min.watergap.common.context.WaterGapContext;
 import org.min.watergap.common.datasource.DataSourceWrapper;
 import org.min.watergap.common.lifecycle.AbstractWaterGapLifeCycle;
+import org.min.watergap.common.utils.ThreadLocalUtils;
 import org.min.watergap.intake.Pumper;
 import org.min.watergap.intake.dialect.DBDialect;
 import org.min.watergap.intake.dialect.DBDialectWrapper;
@@ -55,6 +56,10 @@ public abstract class DBPumper extends AbstractWaterGapLifeCycle implements Pump
             LOG.warn("revert dataSource fail", e);
         }
 
+    }
+
+    protected void initLocalService() {
+        ThreadLocalUtils.init();
     }
 
     public void executeQuery(String querySql, ResultSetCallback resultSetCallback) throws SQLException, InterruptedException {

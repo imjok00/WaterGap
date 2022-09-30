@@ -27,7 +27,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +39,12 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MysqlConnection {
 
     private static final Logger logger         = LoggerFactory.getLogger(MysqlConnection.class);
+    private int                  defaultConnectionTimeoutInSeconds = 30;       // sotimeout
+    private int                  receiveBufferSize                 = 64 * 1024;
+    private int                  sendBufferSize                    = 64 * 1024;
+    // 编码信息
+    protected byte                 connectionCharsetNumber   = (byte) 33;
+    protected Charset              connectionCharset         = Charset.forName("UTF-8");
 
     private MysqlConnector connector;
     private long                slaveId;
@@ -61,6 +70,16 @@ public class MysqlConnection {
         connector.setSoTimeout(soTimeout);
         connector.setConnTimeout(connTimeout);
         connector.setDefaultSchema(authInfo.getDatabaseName());
+        connector.setReceiveBufferSize(receiveBufferSize);
+        connector.setSendBufferSize(sendBufferSize);
+        connector.setSoTimeout(defaultConnectionTimeoutInSeconds * 1000);
+        setCharset(connectionCharset);
+        setReceivedBinlogBytes(receivedBinlogBytes);
+        // 随机生成slaveId
+        if (this.slaveId <= 0) {
+            this.slaveId = generateUniqueServerId();
+        }
+        setSlaveId(this.slaveId);
     }
 
     public void connect() throws IOException {
@@ -97,6 +116,7 @@ public class MysqlConnection {
         MysqlIncreLogConvert convert = new MysqlIncreLogConvert(Charset.defaultCharset());
         LogContext context = new LogContext();
         LogDecoder decoder = new LogDecoder(BaseLogEvent.UNKNOWN_EVENT, BaseLogEvent.ENUM_END_EVENT);
+
         try (DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize())) {
             fetcher.start(connector.getChannel());
             while (fetcher.fetch()) {
@@ -116,16 +136,29 @@ public class MysqlConnection {
         MysqlIncreLogConvert convert = new MysqlIncreLogConvert(Charset.defaultCharset());
         LogContext context = new LogContext();
         LogDecoder decoder = new LogDecoder(BaseLogEvent.UNKNOWN_EVENT, BaseLogEvent.ENUM_END_EVENT);
-        try (DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize())) {
-            fetcher.start(connector.getChannel());
-            while (fetcher.fetch()) {
-                accumulateReceivedBytes(fetcher.limit());
-                LogBuffer buffer = fetcher.duplicate();
-                fetcher.consume(fetcher.limit());
-                BaseLogEvent logEvent = decoder.decode(buffer, context);
-                piping.put(convert.convert(logEvent));
+        decoder.handle(BaseLogEvent.ROTATE_EVENT);
+        decoder.handle(BaseLogEvent.FORMAT_DESCRIPTION_EVENT);
+        decoder.handle(BaseLogEvent.QUERY_EVENT);
+        decoder.handle(BaseLogEvent.XID_EVENT);
+        decoder.handle(BaseLogEvent.GTID_LOG_EVENT);
+        for (;;) {
+            try (DirectLogFetcher fetcher = new DirectLogFetcher(connector.getReceiveBufferSize())) {
+                fetcher.start(connector.getChannel());
+                while (fetcher.fetch()) {
+                    accumulateReceivedBytes(fetcher.limit());
+                    LogBuffer buffer = fetcher.duplicate();
+                    fetcher.consume(fetcher.limit());
+                    BaseLogEvent logEvent = decoder.decode(buffer, context);
+                    piping.put(convert.convert(logEvent));
+                }
+                // 读到 mark=254
+                reconnect();
+            } catch (SocketTimeoutException se) {
+                // 能走到这里说明 超时了
+                reconnect();
             }
         }
+
     }
 
     public void dump(MysqlGTIDSet gtidSet, MultiThreadWorkGroup worker) throws Exception {
@@ -493,4 +526,24 @@ public class MysqlConnection {
         this.receivedBinlogBytes = receivedBinlogBytes;
     }
 
+    private final long generateUniqueServerId() {
+        try {
+            // a=`echo $masterip|cut -d\. -f1`
+            // b=`echo $masterip|cut -d\. -f2`
+            // c=`echo $masterip|cut -d\. -f3`
+            // d=`echo $masterip|cut -d\. -f4`
+            // #server_id=`expr $a \* 256 \* 256 \* 256 + $b \* 256 \* 256 + $c
+            // \* 256 + $d `
+            // #server_id=$b$c$d
+            // server_id=`expr $b \* 256 \* 256 + $c \* 256 + $d `
+            InetAddress localHost = InetAddress.getLocalHost();
+            byte[] addr = localHost.getAddress();
+            int salt = (authInfo != null) ? authInfo.hashCode() : 0;
+            return ((0x7f & salt) << 24) + ((0xff & (int) addr[1]) << 16) // NL
+                    + ((0xff & (int) addr[2]) << 8) // NL
+                    + (0xff & (int) addr[3]);
+        } catch (UnknownHostException e) {
+            throw new WaterGapException("Unknown host", e);
+        }
+    }
 }
